@@ -148,6 +148,16 @@ export class BulletManager {
     }
   }
 
+  // 반경 내 탄막 모두 파괴 (피버타임용)
+  clearInRadius(cx, cy, radius) {
+    const r2 = radius * radius;
+    for (const b of this.bullets) {
+      if (!b.alive) continue;
+      const dx = b.x - cx, dy = b.y - cy;
+      if (dx * dx + dy * dy < r2) b.alive = false;
+    }
+  }
+
   // 대시 경로 위의 탄막 모두 파괴 → 파괴 개수 반환
   handleDash(x1, y1, x2, y2, sweepRadius) {
     let count = 0;
