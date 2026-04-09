@@ -37,8 +37,9 @@ export class Game {
 
     // 레벨업 콜백 등록
     this.levels.onLevelUp((level, bonus) => {
+      void level;
       this.player.applyLevelBonus(bonus);
-      this.ui.showLevelUp(level, bonus);
+      this.player.showLevelUp(bonus);
     });
 
     // ─ 상태
@@ -50,14 +51,12 @@ export class Game {
     this._itemSlowActive = false;
     this._itemSlowTimer  = 0;
 
-    // 스킬: 슬로우 모드 (SPACE)
+    // 스킬: 슬로우 모드 (W hold)
     this._skillSlowActive   = false;
-    this._skillSlowTimer    = 0;
     this._skillSlowCooldown = 0;
 
-    // 스킬: 스피드 부스트 (SHIFT)
+    // 스킬: 스피드 부스트 (Q hold)
     this._skillSpeedActive   = false;
-    this._skillSpeedTimer    = 0;
     this._skillSpeedCooldown = 0;
 
     this._loop = this._loop.bind(this);
@@ -77,6 +76,24 @@ export class Game {
     document.getElementById('btn-start').addEventListener('click',         () => this.start());
     document.getElementById('btn-restart').addEventListener('click',       () => this.start());
     document.getElementById('btn-clear-restart').addEventListener('click', () => this.start());
+
+    // 점수 저장 버튼 (게임오버)
+    document.getElementById('btn-save-gameover').addEventListener('click', async () => {
+      const name = document.getElementById('gameover-name').value.trim() || 'PLAYER';
+      const btn  = document.getElementById('btn-save-gameover');
+      btn.disabled    = true;
+      btn.textContent = '저장 완료 ✓';
+      await saveScore(name, this.scores.score, this.waves.wave, this.levels.level);
+    });
+
+    // 점수 저장 버튼 (게임 클리어)
+    document.getElementById('btn-save-clear').addEventListener('click', async () => {
+      const name = document.getElementById('clear-name').value.trim() || 'PLAYER';
+      const btn  = document.getElementById('btn-save-clear');
+      btn.disabled    = true;
+      btn.textContent = '저장 완료 ✓';
+      await saveScore(name, this.scores.score, this.waves.wave, this.levels.level);
+    });
   }
 
   start() {
@@ -90,10 +107,8 @@ export class Game {
     this._itemSlowActive     = false;
     this._itemSlowTimer      = 0;
     this._skillSlowActive    = false;
-    this._skillSlowTimer     = 0;
     this._skillSlowCooldown  = 0;
     this._skillSpeedActive   = false;
-    this._skillSpeedTimer    = 0;
     this._skillSpeedCooldown = 0;
     this.player.speedMult    = 1.0;
 
@@ -135,37 +150,39 @@ export class Game {
       }
     }
 
-    // 2. 스킬: 슬로우 모드 (SPACE)
-    if (this.input.isSlowModePressed() && this._skillSlowCooldown <= 0 && !this._skillSlowActive) {
-      this._skillSlowActive  = true;
-      this._skillSlowTimer   = SKILLS.SLOW_MODE.DURATION;
-    }
-    if (this._skillSlowActive) {
-      this._skillSlowTimer -= dt;
-      if (this._skillSlowTimer <= 0) {
-        this._skillSlowActive  = false;
+    // 2. 스킬: 슬로우 모드 (W hold)
+    const wHeld = this.input.isSlowModeHeld();
+    if (this._skillSlowCooldown > 0) {
+      this._skillSlowCooldown -= dt;
+      if (this._skillSlowCooldown < 0) this._skillSlowCooldown = 0;
+      this._skillSlowActive = false;
+    } else if (wHeld) {
+      this._skillSlowActive = true;
+    } else {
+      if (this._skillSlowActive) {
         this._skillSlowCooldown = SKILLS.SLOW_MODE.COOLDOWN;
       }
-    } else if (this._skillSlowCooldown > 0) {
-      this._skillSlowCooldown -= dt;
+      this._skillSlowActive = false;
     }
 
-    // 3. 스킬: 스피드 부스트 (SHIFT)
-    if (this.input.isSpeedBoostPressed() && this._skillSpeedCooldown <= 0 && !this._skillSpeedActive) {
-      this._skillSpeedActive = true;
-      this._skillSpeedTimer  = SKILLS.SPEED_BOOST.DURATION;
-      this.player.speedMult  = SKILLS.SPEED_BOOST.SPEED_MULT;
-    }
-    if (this._skillSpeedActive) {
-      this._skillSpeedTimer -= dt;
-      if (this._skillSpeedTimer <= 0) {
-        this._skillSpeedActive   = false;
-        this._skillSpeedCooldown = SKILLS.SPEED_BOOST.COOLDOWN;
-        this.player.speedMult    = 1.0;
-      }
-    } else if (this._skillSpeedCooldown > 0) {
+    // 3. 스킬: 스피드 부스트 (Q hold)
+    const qHeld = this.input.isSpeedBoostHeld();
+    if (this._skillSpeedCooldown > 0) {
       this._skillSpeedCooldown -= dt;
+      if (this._skillSpeedCooldown < 0) this._skillSpeedCooldown = 0;
+      this._skillSpeedActive = false;
+      this.player.speedMult  = 1.0;
+    } else if (qHeld) {
+      this._skillSpeedActive = true;
+      this.player.speedMult  = SKILLS.SPEED_BOOST.SPEED_MULT;
+    } else {
+      if (this._skillSpeedActive) {
+        this._skillSpeedCooldown = SKILLS.SPEED_BOOST.COOLDOWN;
+      }
+      this._skillSpeedActive = false;
+      this.player.speedMult  = 1.0;
     }
+    this.player.speedBoostActive = this._skillSpeedActive;
 
     // 4. 플레이어 이동
     this.player.update(dt, this.input);
@@ -285,17 +302,25 @@ export class Game {
   }
 
   // ─── 게임 종료 처리 ─────────────────────────────────────────
-  async _gameOver() {
+  _gameOver() {
     this.state = 'gameover';
     document.getElementById('gameover-score').textContent = this.scores.score;
+    // 저장 버튼 초기화
+    const btn = document.getElementById('btn-save-gameover');
+    btn.disabled    = false;
+    btn.textContent = '저장하기';
+    document.getElementById('gameover-name').value = '';
     document.getElementById('screen-gameover').classList.remove('hidden');
-    await saveScore('PLAYER', this.scores.score, this.waves.wave, this.levels.level);
   }
 
-  async _gameClear() {
+  _gameClear() {
     this.state = 'clear';
     document.getElementById('clear-score').textContent = this.scores.score;
+    // 저장 버튼 초기화
+    const btn = document.getElementById('btn-save-clear');
+    btn.disabled    = false;
+    btn.textContent = '저장하기';
+    document.getElementById('clear-name').value = '';
     document.getElementById('screen-clear').classList.remove('hidden');
-    await saveScore('PLAYER', this.scores.score, this.waves.wave, this.levels.level);
   }
 }

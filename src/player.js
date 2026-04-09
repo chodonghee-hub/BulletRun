@@ -45,7 +45,26 @@ export class Player {
     this.faceDirY = -1;
 
     // ─ 스킬 배율
-    this.speedMult = 1.0;
+    this.speedMult       = 1.0;
+    this.speedBoostActive = false;
+
+    // ─ 잔상 트레일
+    this._trail = [];
+
+    // ─ 레벨업 메세지
+    this._levelUpTimer     = 0;
+    this._levelUpDuration  = 2.0;
+    this._levelUpBonusText = '';
+  }
+
+  // 레벨업 메세지 표시 (캔버스에서 렌더)
+  showLevelUp(bonus) {
+    const parts = [];
+    if (bonus.speed)        parts.push(`이동속도 +${bonus.speed}`);
+    if (bonus.maxLife)      parts.push(`최대 라이프 +${bonus.maxLife}`);
+    if (bonus.dashRecharge) parts.push(`대시 충전 ↑`);
+    this._levelUpBonusText = parts.join('  /  ');
+    this._levelUpTimer     = this._levelUpDuration;
   }
 
   // 레벨업 자동 스탯 적용
@@ -111,6 +130,9 @@ export class Player {
   }
 
   update(dt, input) {
+    // 레벨업 타이머
+    if (this._levelUpTimer > 0) this._levelUpTimer -= dt;
+
     // 무적 타이머
     if (this.invincible) {
       this.invincibleTimer -= dt;
@@ -157,11 +179,51 @@ export class Player {
       this._lastDir = { x: n.x, y: n.y };
       this.faceDirX = n.x;
       this.faceDirY = n.y;
+
+      // 가속 중 잔상 위치 기록 (매 5px 이상 이동 시)
+      if (this.speedBoostActive) {
+        const last = this._trail[this._trail.length - 1];
+        if (!last || (this.x - last.x) ** 2 + (this.y - last.y) ** 2 > 25) {
+          this._trail.push({ x: this.x, y: this.y });
+          if (this._trail.length > 6) this._trail.shift();
+        }
+      }
     }
+
+    // 가속 종료 시 잔상 클리어
+    if (!this.speedBoostActive) {
+      this._trail = [];
+    }
+  }
+
+  // 잔상 고스트 바디 (낮은 alpha로 동일한 형태 렌더)
+  _renderGhostAt(ctx, gx, gy, alpha) {
+    const r  = this.radius;
+    const cx = gx, cy = gy + r * 0.08;
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.shadowColor = '#29b6f6';
+    ctx.shadowBlur  = 8;
+    ctx.beginPath();
+    ctx.moveTo(cx - r * 0.88, cy + r * 0.38);
+    ctx.quadraticCurveTo(cx,           cy + r * 1.05, cx + r * 0.88, cy + r * 0.38);
+    ctx.quadraticCurveTo(cx + r * 1.0, cy - r * 0.18, cx + r * 0.32, cy - r * 0.82);
+    ctx.quadraticCurveTo(cx,           cy - r * 1.28, cx - r * 0.32, cy - r * 0.82);
+    ctx.quadraticCurveTo(cx - r * 1.0, cy - r * 0.18, cx - r * 0.88, cy + r * 0.38);
+    ctx.closePath();
+    ctx.fillStyle = '#ffeb3b';
+    ctx.fill();
+    ctx.restore();
   }
 
   render(ctx) {
     if (!this.blinkOn) return;
+
+    // ── 가속 잔상 트레일
+    for (let i = 0; i < this._trail.length; i++) {
+      const alpha = (i + 1) / this._trail.length * 0.28;
+      this._renderGhostAt(ctx, this._trail[i].x, this._trail[i].y, alpha);
+    }
 
     const { x, y, radius } = this;
     ctx.save();
@@ -257,5 +319,95 @@ export class Player {
     ctx.fill();
 
     ctx.restore();
+
+    // ── 대시 충전 링 (3분할 원호)
+    {
+      const MAX_D   = 3;
+      const ringR   = radius + 14;
+      const gapRad  = (8 * Math.PI) / 180;
+      const arcSpan = (2 * Math.PI / MAX_D) - gapRad;
+      ctx.save();
+      ctx.lineWidth = 3;
+      ctx.lineCap   = 'round';
+      for (let i = 0; i < MAX_D; i++) {
+        const sa = -Math.PI / 2 + i * (2 * Math.PI / MAX_D) + gapRad / 2;
+        if (i < this.dashStacks) {
+          // 충전 완료
+          ctx.strokeStyle = '#64b5f6';
+          ctx.shadowColor = '#64b5f6';
+          ctx.shadowBlur  = 6;
+          ctx.beginPath();
+          ctx.arc(x, y, ringR, sa, sa + arcSpan);
+          ctx.stroke();
+        } else if (i === this.dashStacks) {
+          // 빈 배경
+          ctx.strokeStyle = 'rgba(100,181,246,0.18)';
+          ctx.shadowBlur  = 0;
+          ctx.beginPath();
+          ctx.arc(x, y, ringR, sa, sa + arcSpan);
+          ctx.stroke();
+          // 충전 진행 호
+          const progress = this.dashRechargeTimer / this.dashRecharge;
+          if (progress > 0) {
+            ctx.strokeStyle = '#64b5f6';
+            ctx.shadowColor = '#64b5f6';
+            ctx.shadowBlur  = 6;
+            ctx.beginPath();
+            ctx.arc(x, y, ringR, sa, sa + arcSpan * progress);
+            ctx.stroke();
+          }
+        } else {
+          // 빈 스택
+          ctx.strokeStyle = 'rgba(100,181,246,0.18)';
+          ctx.shadowBlur  = 0;
+          ctx.beginPath();
+          ctx.arc(x, y, ringR, sa, sa + arcSpan);
+          ctx.stroke();
+        }
+      }
+      ctx.restore();
+    }
+
+    // ── 라이프 텍스트 (캐릭터 위)
+    ctx.save();
+    ctx.font         = `bold 14px 'Courier New', monospace`;
+    ctx.textAlign    = 'center';
+    ctx.textBaseline = 'bottom';
+    ctx.shadowColor  = 'rgba(0,0,0,0.9)';
+    ctx.shadowBlur   = 5;
+    ctx.fillStyle    = '#fff';
+    ctx.fillText(`❤️×${this.life}`, x, y - radius - 8);
+    ctx.restore();
+
+    // ── 레벨업 메세지 (캐릭터 위, 페이드 아웃)
+    if (this._levelUpTimer > 0) {
+      const progress = this._levelUpTimer / this._levelUpDuration;
+      // 마지막 0.4초 동안 페이드 아웃
+      const fadeStart = 0.4 / this._levelUpDuration;
+      const alpha = progress > fadeStart ? 1.0 : progress / fadeStart;
+      // 위로 살짝 떠오르는 효과
+      const floatY = (1 - progress) * 20;
+
+      ctx.save();
+      ctx.globalAlpha  = alpha;
+      ctx.textAlign    = 'center';
+      ctx.textBaseline = 'bottom';
+      ctx.shadowColor  = 'rgba(0,0,0,0.9)';
+      ctx.shadowBlur   = 8;
+
+      // "LEVEL UP!" 타이틀
+      ctx.font      = `bold 20px 'Courier New', monospace`;
+      ctx.fillStyle = '#ffeb3b';
+      ctx.fillText('LEVEL UP!', x, y - radius - 30 - floatY);
+
+      // 보너스 텍스트
+      if (this._levelUpBonusText) {
+        ctx.font      = `12px 'Courier New', monospace`;
+        ctx.fillStyle = 'rgba(255,255,255,0.9)';
+        ctx.fillText(this._levelUpBonusText, x, y - radius - 12 - floatY);
+      }
+
+      ctx.restore();
+    }
   }
 }

@@ -67,20 +67,20 @@
 }
 
 #hud-score {
-  font-size: 20px;
+  font-size: 32px;
   font-weight: bold;
   color: #fff;
   text-shadow: 0 0 10px rgba(0,0,0,0.9);
 }
 #hud-score-value { color: #64b5f6; }
 
-#hud-wave  { font-size: 13px; color: #ffeb3b; }
-#hud-level { font-size: 13px; color: #a5d6a7; }
+#hud-wave  { font-size: 16px; color: #ffeb3b; }
+#hud-level { font-size: 16px; color: #a5d6a7; }
 
 /* ─── Bottom HUD ────────────────────────────────────────── */
 #hud-bottom {
   position: absolute;
-  bottom: 20px;
+  bottom: 10px;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
@@ -119,25 +119,25 @@
 /* EXP bar */
 #hud-exp-bar-container {
   position: relative;
-  width: 220px;
-  height: 10px;
+  width: 360px;
+  height: 18px;
   background: rgba(255,255,255,0.1);
-  border-radius: 5px;
+  border-radius: 9px;
   overflow: hidden;
 }
 #hud-exp-bar-fill {
   height: 100%;
   width: 0%;
   background: linear-gradient(90deg, #43a047, #66bb6a);
-  border-radius: 5px;
+  border-radius: 9px;
   transition: width 0.25s ease;
 }
 #hud-exp-label {
   position: absolute;
-  right: 6px;
+  right: 8px;
   top: 50%;
   transform: translateY(-50%);
-  font-size: 8px;
+  font-size: 10px;
   color: rgba(255,255,255,0.5);
   letter-spacing: 0.1em;
 }
@@ -145,17 +145,17 @@
 /* Dash stack icons */
 #hud-dash-container {
   display: flex;
-  gap: 7px;
+  gap: 9px;
   align-items: center;
 }
 
 .dash-icon {
-  width: 16px;
-  height: 16px;
-  border-radius: 3px;
-  border: 2px solid #64b5f6;
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  border: 4px solid #64b5f6;
   background: #64b5f6;
-  box-shadow: 0 0 6px #64b5f680;
+  box-shadow: 0 0 8px #64b5f680;
   display: inline-block;
   transition: background 0.2s, box-shadow 0.2s;
 }
@@ -172,46 +172,71 @@
   left: 14px;
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 6px;
 }
 
 .skill-slot {
+  position: relative;
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-size: 12px;
-  background: rgba(0,0,0,0.5);
-  border: 1px solid rgba(255,255,255,0.12);
-  border-radius: 4px;
-  padding: 3px 8px;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 14px;
+  background: rgba(0,0,0,0.6);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 6px;
+  padding: 6px 12px;
+  overflow: hidden;
+  transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
+  min-width: 200px;
+}
+
+/* ON 상태 강조 */
+.skill-slot.skill-on {
+  background: rgba(255,235,59,0.15);
+  border-color: rgba(255,235,59,0.5);
+  box-shadow: 0 0 10px rgba(255,235,59,0.25);
 }
 
 .skill-key {
-  color: rgba(255,255,255,0.5);
-  font-size: 10px;
+  color: rgba(255,255,255,0.55);
+  font-size: 16px;
+  font-weight: bold;
   letter-spacing: 0.05em;
-  min-width: 36px;
+  min-width: 18px;
+  text-align: center;
 }
 
 .skill-name {
-  color: rgba(255,255,255,0.75);
-  min-width: 70px;
+  color: rgba(255,255,255,0.80);
+  font-size: 18px;
+  min-width: 82px;
 }
 
 .skill-status {
-  font-size: 11px;
+  font-size: 13px;
   font-weight: bold;
   letter-spacing: 0.05em;
-  min-width: 46px;
+  min-width: 52px;
   text-align: right;
 }
 .skill-status.ready    { color: #69f0ae; }
-.skill-status.active   { color: #ffeb3b; animation: skill-pulse 0.6s infinite alternate; }
-.skill-status.cooldown { color: rgba(255,255,255,0.35); }
+.skill-status.active   { color: #ffeb3b; animation: skill-pulse 0.5s infinite alternate; }
+.skill-status.cooldown { color: rgba(255,255,255,0.4); }
+
+/* 쿨타임 진행 바 (슬롯 하단) */
+.skill-cooldown-bar {
+  position: absolute;
+  bottom: 0; left: 0;
+  height: 3px;
+  background: rgba(100,181,246,0.75);
+  transition: width 0.12s linear;
+  border-radius: 0 0 6px 6px;
+}
 
 @keyframes skill-pulse {
   from { opacity: 1; }
-  to   { opacity: 0.5; }
+  to   { opacity: 0.45; }
 }
 
 /* ─── Screens ───────────────────────────────────────────── */
@@ -289,15 +314,41 @@
   border-color: #fff;
 }
 
-/* Level-up overlay: non-blocking, semi-transparent */
+/* Level-up overlay: non-blocking, 배경 없음 */
 .levelup-overlay {
-  background: rgba(0, 0, 0, 0.45);
+  background: transparent;
   pointer-events: none;
 }
 .levelup-overlay p {
   font-size: 20px;
   color: rgba(255,255,255,0.9);
+  text-shadow: 0 0 12px rgba(0,0,0,0.9);
 }
+
+/* Nickname input (game over / clear screens) */
+.name-input {
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.35);
+  border-radius: 4px;
+  color: #fff;
+  font-family: 'Courier New', monospace;
+  font-size: 16px;
+  padding: 8px 16px;
+  text-align: center;
+  outline: none;
+  width: 220px;
+  pointer-events: all;
+}
+.name-input::placeholder { color: rgba(255,255,255,0.3); }
+.name-input:focus { border-color: rgba(255,255,255,0.7); }
+
+/* 보조 버튼 (다시 시작) */
+.btn-secondary {
+  opacity: 0.6;
+  font-size: 14px !important;
+  padding: 8px 24px !important;
+}
+.btn-secondary:hover { opacity: 1; }
 
 /* Ranking list on start screen */
 #screen-start-ranking {

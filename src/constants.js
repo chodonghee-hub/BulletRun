@@ -35,7 +35,7 @@ export const WAVE = {
 
 // ─── Score ────────────────────────────────────────────────────
 export const SCORE = {
-  CLEAR_TARGET:   1000,
+  CLEAR_TARGET:   100000,
   PER_SECOND:     1,
   ITEM_BASE:      50,
   NOHIT_BONUS:    100,
