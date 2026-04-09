@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bullet Run</title>
+  <!-- Requires a local server (e.g. VS Code Live Server) due to ES Modules -->
+  <link rel="stylesheet" href="styles/main.css" />
+  <link rel="stylesheet" href="styles/ui.css" />
+</head>
+<body>
+  <div id="game-container">
+
+    <!-- Main game canvas -->
+    <canvas id="game-canvas"></canvas>
+
+    <!-- HUD overlay (shown during play) -->
+    <div id="hud-overlay" style="display:none">
+
+      <!-- Minimap: top-left -->
+      <div id="minimap-container">
+        <div id="minimap-label">MAP</div>
+        <canvas id="minimap-canvas"></canvas>
+      </div>
+
+      <!-- Score progress bar: very top of screen -->
+      <div id="hud-score-progress-bar">
+        <div id="hud-score-progress-fill"></div>
+        <span id="hud-score-progress-text">0 / 1000</span>
+      </div>
+
+      <!-- Top-right info -->
+      <div id="hud-info">
+        <div id="hud-score">SCORE <span id="hud-score-value">0</span></div>
+        <div id="hud-wave">WAVE <span id="hud-wave-value">1</span></div>
+        <div id="hud-level">LV <span id="hud-level-value">1</span></div>
+      </div>
+
+      <!-- Bottom center: life / exp / dash -->
+      <!-- 스킬 표시 (좌측 하단) -->
+      <div id="hud-skills">
+        <div class="skill-slot">
+          <span class="skill-key">SPACE</span>
+          <span class="skill-name">❄️ SLOW</span>
+          <span id="skill-slow-status" class="skill-status ready">READY</span>
+        </div>
+        <div class="skill-slot">
+          <span class="skill-key">SHIFT</span>
+          <span class="skill-name">⚡ SPEED</span>
+          <span id="skill-speed-status" class="skill-status ready">READY</span>
+        </div>
+        <div class="skill-slot">
+          <span class="skill-key">E</span>
+          <span class="skill-name">💨 DASH</span>
+        </div>
+      </div>
+
+      <div id="hud-bottom">
+        <div id="hud-life-container"></div>
+        <div id="hud-exp-bar-container">
+          <div id="hud-exp-bar-fill"></div>
+          <span id="hud-exp-label">EXP</span>
+        </div>
+        <div id="hud-dash-container"></div>
+      </div>
+
+    </div><!-- /hud-overlay -->
+
+    <!-- ── SCREENS ── -->
+
+    <!-- Start screen -->
+    <div id="screen-start" class="screen">
+      <h1 class="title-glow">BULLET RUN</h1>
+      <p class="subtitle">탄막을 피하고 1000점을 달성하라</p>
+      <div id="screen-start-controls">
+        <span>이동: WASD / 방향키</span>
+        <span>대시: E (3스택, 탄막 파괴)</span>
+        <span>슬로우 모드: SPACE (5초, 쿨타임 12초)</span>
+        <span>스피드 부스트: SHIFT (3초, 쿨타임 8초)</span>
+      </div>
+      <button id="btn-start" class="btn-primary">게임 시작</button>
+      <div id="screen-start-ranking"></div>
+    </div>
+
+    <!-- Game Over screen -->
+    <div id="screen-gameover" class="screen hidden">
+      <h2 class="screen-title-red">GAME OVER</h2>
+      <p class="screen-score">SCORE: <span id="gameover-score">0</span></p>
+      <button id="btn-restart" class="btn-primary">다시 시작</button>
+    </div>
+
+    <!-- Clear screen -->
+    <div id="screen-clear" class="screen hidden">
+      <h2 class="screen-title-green">GAME CLEAR!</h2>
+      <p class="screen-score">SCORE: <span id="clear-score">0</span></p>
+      <button id="btn-clear-restart" class="btn-primary">다시 시작</button>
+    </div>
+
+    <!-- Level-up flash (non-blocking) -->
+    <div id="screen-levelup" class="screen hidden levelup-overlay">
+      <h2 class="screen-title-yellow">LEVEL UP!</h2>
+      <p id="levelup-message"></p>
+    </div>
+
+  </div><!-- /game-container -->
+
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>
