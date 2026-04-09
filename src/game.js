@@ -1,18 +1,19 @@
 // src/game.js — 메인 게임 클래스 (게임 루프 / 시스템 통합)
 
-import { Camera }          from './camera.js';
-import { GameMap }         from './map.js';
-import { Player }          from './player.js';
-import { BulletManager }   from './bullet.js';
-import { ItemManager }     from './item.js';
-import { WaveManager }     from './wave.js';
-import { LevelManager }    from './level.js';
-import { ScoreManager }    from './score.js';
-import { Minimap }         from './minimap.js';
-import { UIManager }       from './ui.js';
-import { InputManager }    from './input.js';
-import { saveScore }       from './supabase-client.js';
-import { SKILLS }          from './constants.js';
+import { Camera }               from './camera.js';
+import { GameMap }              from './map.js';
+import { Player }               from './player.js';
+import { BulletManager }        from './bullet.js';
+import { ItemManager }          from './item.js';
+import { WaveManager }          from './wave.js';
+import { LevelManager }         from './level.js';
+import { ScoreManager }         from './score.js';
+import { Minimap }              from './minimap.js';
+import { UIManager }            from './ui.js';
+import { InputManager }         from './input.js';
+import { saveScore }            from './supabase-client.js';
+import { BombNecklaceManager }  from './bomb-necklace.js';
+import { SKILLS, FEVER }        from './constants.js';
 
 export class Game {
   constructor(canvas, minimapCanvas) {
@@ -34,12 +35,13 @@ export class Game {
     this.minimap = new Minimap(minimapCanvas);
     this.ui      = new UIManager();
     this.input   = new InputManager();
+    this.bomb    = new BombNecklaceManager();
 
     // 레벨업 콜백 등록
     this.levels.onLevelUp((level, bonus) => {
-      void level;
       this.player.applyLevelBonus(bonus);
       this.player.showLevelUp(bonus);
+      this.bomb.onLevelReached(level);
     });
 
     // ─ 상태
@@ -51,13 +53,18 @@ export class Game {
     this._itemSlowActive = false;
     this._itemSlowTimer  = 0;
 
-    // 스킬: 슬로우 모드 (W hold)
-    this._skillSlowActive   = false;
-    this._skillSlowCooldown = 0;
+    // 스킬: 슬로우 모드 (W hold) — 스택 기반
+    this._skillSlowActive = false;
+    this._skillSlowStack  = SKILLS.SLOW_MODE.MAX_STACK;
 
     // 스킬: 스피드 부스트 (Q hold)
     this._skillSpeedActive   = false;
     this._skillSpeedCooldown = 0;
+
+    // 피버타임
+    this._starCount   = 0;
+    this._feverActive = false;
+    this._feverTimer  = 0;
 
     this._loop = this._loop.bind(this);
     this._setupButtons();
@@ -107,11 +114,15 @@ export class Game {
     this._itemSlowActive     = false;
     this._itemSlowTimer      = 0;
     this._skillSlowActive    = false;
-    this._skillSlowCooldown  = 0;
+    this._skillSlowStack     = SKILLS.SLOW_MODE.MAX_STACK;
     this._skillSpeedActive   = false;
     this._skillSpeedCooldown = 0;
     this.player.speedMult    = 1.0;
     this._nextDashMilestoneIdx = 0;
+    this._starCount          = 0;
+    this._feverActive        = false;
+    this._feverTimer         = 0;
+    this.bomb.reset();
 
     // UI 초기화 — 모든 스크린 숨김, HUD 표시
     document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
@@ -151,19 +162,20 @@ export class Game {
       }
     }
 
-    // 2. 스킬: 슬로우 모드 (W hold) — 스피드 부스트 활성 중이면 사용 불가
+    // 2. 스킬: 슬로우 모드 (W hold) — 스택 소모/충전 방식
     const wHeld = this.input.isSlowModeHeld() && !this._skillSpeedActive;
-    if (this._skillSlowCooldown > 0) {
-      this._skillSlowCooldown -= dt;
-      if (this._skillSlowCooldown < 0) this._skillSlowCooldown = 0;
-      this._skillSlowActive = false;
-    } else if (wHeld) {
+    if (wHeld && this._skillSlowStack > 0) {
       this._skillSlowActive = true;
+      this._skillSlowStack  = Math.max(0, this._skillSlowStack - dt);
+      if (this._skillSlowStack <= 0) this._skillSlowActive = false;
     } else {
-      if (this._skillSlowActive) {
-        this._skillSlowCooldown = SKILLS.SLOW_MODE.COOLDOWN;
-      }
       this._skillSlowActive = false;
+      if (this._skillSlowStack < SKILLS.SLOW_MODE.MAX_STACK) {
+        this._skillSlowStack = Math.min(
+          SKILLS.SLOW_MODE.MAX_STACK,
+          this._skillSlowStack + SKILLS.SLOW_MODE.REGEN_RATE * dt
+        );
+      }
     }
 
     // 3. 스킬: 스피드 부스트 (Q hold) — 슬로우 스킬 활성 중이면 사용 불가 (아이템 슬로우는 허용)
@@ -222,21 +234,53 @@ export class Game {
           this._itemSlowActive = true;
           this._itemSlowTimer  = item.config.slowDuration;
         }
+        if (item.type === 'exp') {
+          this._starCount++;
+          if (this._starCount % FEVER.STAR_COUNT === 0) {
+            this._feverActive = true;
+            this._feverTimer  = FEVER.DURATION;
+            this.player.setFever(true);
+          }
+        }
       }
     }
 
+    // 9-1. 피버타임 업데이트
+    if (this._feverActive) {
+      this._feverTimer -= dt;
+      this.player.speedMult = 2.5;  // 피버 중 이동속도 2.5×
+      this.items.magnetToward(this.player.x, this.player.y, FEVER.MAGNET_RADIUS, FEVER.MAGNET_SPEED, dt);
+      if (this._feverTimer <= 0) {
+        this._feverActive = false;
+        this._feverTimer  = 0;
+        this.player.setFever(false);
+        // speedMult는 다음 프레임 step 3에서 자동 복원
+      }
+    }
+
+    // 9-2. 폭탄 목걸이 업데이트
+    const bombResult = this.bomb.update(dt);
+    if (bombResult === 'explode') { this._bombExplode(); return; }
+    this.bomb.checkKeyPickup(this.player.x, this.player.y, this.player.radius);
+
     // 10. 탄막 충돌 판정 (히트박스 기준)
-    if (!this.player.invincible && !this.player.isDashing) {
+    // 피버 중: 접촉 탄막 파괴 (데미지 없음, break 없이 전부 처리)
+    // 일반: 프레임당 1회 피격
+    {
       const hbr = this.player.hitboxRadius;
       for (const b of this.bullets.bullets) {
         if (!b.alive) continue;
         const dx = this.player.x - b.x;
         const dy = this.player.y - b.y;
         if (dx * dx + dy * dy < (hbr + b.radius) * (hbr + b.radius)) {
-          const damaged = this.player.takeDamage();
-          if (damaged) this.scores.onHit();
-          b.alive = false;
-          break; // 프레임당 1회 피격
+          if (this.player.feverActive) {
+            b.alive = false;
+          } else if (!this.player.invincible && !this.player.isDashing) {
+            const damaged = this.player.takeDamage();
+            if (damaged) this.scores.onHit();
+            b.alive = false;
+            break;
+          }
         }
       }
     }
@@ -272,7 +316,7 @@ export class Game {
       this.player.shield,
       // 스킬 상태
       this._skillSlowActive,
-      Math.max(0, this._skillSlowCooldown),
+      this._skillSlowStack,
       this._skillSpeedActive,
       Math.max(0, this._skillSpeedCooldown)
     );
@@ -311,7 +355,61 @@ export class Game {
       ctx.restore();
     }
 
+    // 슬로우 잔량 링 (플레이어 외곽, 월드 공간)
+    {
+      const slowStack = this._skillSlowStack;
+      const SLOW_MAX  = SKILLS.SLOW_MODE.MAX_STACK;
+      if (this._skillSlowActive || slowStack < SLOW_MAX) {
+        const sr       = this.player.radius + 22;
+        const progress = slowStack / SLOW_MAX;
+        const endAngle = -Math.PI / 2 + Math.PI * 2 * progress;
+        ctx.save();
+        // 배경 전체 링
+        ctx.beginPath();
+        ctx.arc(this.player.x, this.player.y, sr, 0, Math.PI * 2);
+        ctx.strokeStyle = 'rgba(41,182,246,0.15)';
+        ctx.lineWidth   = 2.5;
+        ctx.stroke();
+        // 잔량 호
+        ctx.beginPath();
+        ctx.arc(this.player.x, this.player.y, sr, -Math.PI / 2, endAngle);
+        ctx.strokeStyle = this._skillSlowActive
+          ? 'rgba(41,182,246,0.90)'
+          : `rgba(41,182,246,${0.3 + progress * 0.5})`;
+        ctx.lineWidth   = 2.5;
+        ctx.shadowColor = '#29b6f6';
+        ctx.shadowBlur  = this._skillSlowActive ? 10 : 4;
+        ctx.lineCap     = 'round';
+        ctx.stroke();
+        ctx.restore();
+      }
+    }
+
+    // 폭탄 목걸이 열쇠 (월드 공간)
+    this.bomb.renderWorld(ctx);
+
     this.camera.restore(ctx);
+
+    // ── 스크린 공간 오버레이 ──────────────────────────────
+    // 피버타임 맵 테두리 효과
+    if (this._feverActive) {
+      const W = this.canvas.width, H = this.canvas.height;
+      const progress  = this._feverTimer / FEVER.DURATION;
+      const perimeter = 2 * (W + H);
+      const dashLen   = perimeter * progress;
+      ctx.save();
+      ctx.strokeStyle = `rgba(255,50,50,0.85)`;
+      ctx.lineWidth   = 8;
+      ctx.shadowColor = '#ff3232';
+      ctx.shadowBlur  = 20;
+      ctx.setLineDash([dashLen, perimeter]);
+      ctx.strokeRect(4, 4, W - 8, H - 8);
+      ctx.setLineDash([]);
+      ctx.restore();
+    }
+
+    // 폭탄 목걸이 HUD (스크린 공간)
+    this.bomb.renderHUD(ctx, this.canvas.width, this.canvas.height, this.player, this.camera);
   }
 
   // ─── 게임 종료 처리 ─────────────────────────────────────────
@@ -319,6 +417,16 @@ export class Game {
     this.state = 'gameover';
     document.getElementById('gameover-score').textContent = this.scores.score;
     // 저장 버튼 초기화
+    const btn = document.getElementById('btn-save-gameover');
+    btn.disabled    = false;
+    btn.textContent = '저장하기';
+    document.getElementById('gameover-name').value = '';
+    document.getElementById('screen-gameover').classList.remove('hidden');
+  }
+
+  _bombExplode() {
+    this.state = 'gameover';
+    document.getElementById('gameover-score').textContent = this.scores.score;
     const btn = document.getElementById('btn-save-gameover');
     btn.disabled    = false;
     btn.textContent = '저장하기';
