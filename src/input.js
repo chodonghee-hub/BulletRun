@@ -16,7 +16,7 @@ export class InputManager {
       this._justPressed[e.code] = true;
     }
     this._keys[e.code] = true;
-    if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space'].includes(e.code)) {
+    if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code)) {
       e.preventDefault();
     }
   }
@@ -33,26 +33,24 @@ export class InputManager {
   isDown(code)        { return !!this._keys[code]; }
   wasJustPressed(code){ return !!this._justPressed[code]; }
 
-  // 이동 방향 (WASD / 방향키)
+  // 이동 방향 (방향키만)
   getMovementDir() {
     let dx = 0, dy = 0;
-    if (this.isDown('ArrowUp')    || this.isDown('KeyW')) dy -= 1;
-    if (this.isDown('ArrowDown')  || this.isDown('KeyS')) dy += 1;
-    if (this.isDown('ArrowLeft')  || this.isDown('KeyA')) dx -= 1;
-    if (this.isDown('ArrowRight') || this.isDown('KeyD')) dx += 1;
+    if (this.isDown('ArrowUp'))    dy -= 1;
+    if (this.isDown('ArrowDown'))  dy += 1;
+    if (this.isDown('ArrowLeft'))  dx -= 1;
+    if (this.isDown('ArrowRight')) dx += 1;
     return { dx, dy };
   }
 
   // 대시: E 키 (원샷)
-  isDashPressed()       { return this.wasJustPressed('KeyE'); }
+  isDashPressed() { return this.wasJustPressed('KeyE'); }
 
-  // 슬로우 모드: SPACE (원샷)
-  isSlowModePressed()   { return this.wasJustPressed('Space'); }
+  // 슬로우 모드: W (hold)
+  isSlowModeHeld() { return this.isDown('KeyW'); }
 
-  // 스피드 부스트: SHIFT (원샷)
-  isSpeedBoostPressed() {
-    return this.wasJustPressed('ShiftLeft') || this.wasJustPressed('ShiftRight');
-  }
+  // 가속 모드: Q (hold)
+  isSpeedBoostHeld() { return this.isDown('KeyQ'); }
 
   destroy() {
     window.removeEventListener('keydown', this._onDown);
