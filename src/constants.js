@@ -98,18 +98,18 @@ export const ITEM_DROP_RATE = {
   'event':     0.10,
 };
 
-export const MAX_ITEMS_ON_MAP = 40;
+export const MAX_ITEMS_ON_MAP = 20;
 
 // ─── Player Skills ────────────────────────────────────────────
 export const SKILLS = {
   SLOW_MODE: {
     DURATION:     5,    // 활성 지속 시간 (초)
-    COOLDOWN:     12,   // 재사용 대기 시간 (초)
+    COOLDOWN:     2,   // 재사용 대기 시간 (초)
     BULLET_SLOW:  0.35, // 탄막 속도 배율
   },
   SPEED_BOOST: {
     DURATION:    3,     // 활성 지속 시간 (초)
-    COOLDOWN:    8,     // 재사용 대기 시간 (초)
+    COOLDOWN:    2,     // 재사용 대기 시간 (초)
     SPEED_MULT:  1.7,   // 이동 속도 배율
   },
 };
