@@ -23,6 +23,7 @@ export class Player {
     this.dashRecharge = PLAYER.DASH_RECHARGE;
 
     // ─ 대시
+    this.dashStacksMax     = PLAYER.DASH_STACKS_MAX;
     this.dashStacks        = PLAYER.DASH_STACKS_MAX;
     this.dashRechargeTimer = 0;
     this.isDashing         = false;
@@ -147,7 +148,7 @@ export class Player {
     }
 
     // 대시 스택 충전 (스택이 최대가 아닐 때만)
-    if (this.dashStacks < PLAYER.DASH_STACKS_MAX) {
+    if (this.dashStacks < this.dashStacksMax) {
       this.dashRechargeTimer += dt;
       if (this.dashRechargeTimer >= this.dashRecharge) {
         this.dashRechargeTimer -= this.dashRecharge;
@@ -279,50 +280,57 @@ export class Player {
     ctx.fillStyle = bodyGrad;
     ctx.fill();
 
-    // ── 눈 (2개의 빛나는 타원)
+    // ── 눈 (이동 방향에 따라 위치 이동)
+    // faceDirX/Y 기반으로 눈 전체를 살짝 이동
+    const eyeShiftX = this.faceDirX * r * 0.10;
+    const eyeShiftY = this.faceDirY * r * 0.10;
+
     ctx.shadowColor = '#e0f7fa';
     ctx.shadowBlur  = 10;
     ctx.fillStyle   = '#e0f7fa';
 
-    const eyeY  = cy - r * 0.16;
+    const eyeBaseY = cy - r * 0.16;
+    const eyeY  = eyeBaseY + eyeShiftY;
     const eyeW  = r * 0.24;
     const eyeH  = r * 0.30;
     const eyeDX = r * 0.27;
 
     // 왼쪽 눈
     ctx.beginPath();
-    ctx.ellipse(cx - eyeDX, eyeY, eyeW, eyeH, 0, 0, Math.PI * 2);
+    ctx.ellipse(cx - eyeDX + eyeShiftX, eyeY, eyeW, eyeH, 0, 0, Math.PI * 2);
     ctx.fill();
     // 오른쪽 눈
     ctx.beginPath();
-    ctx.ellipse(cx + eyeDX, eyeY, eyeW, eyeH, 0, 0, Math.PI * 2);
+    ctx.ellipse(cx + eyeDX + eyeShiftX, eyeY, eyeW, eyeH, 0, 0, Math.PI * 2);
     ctx.fill();
 
-    // 동공
+    // 동공 (시선 방향으로 추가 이동)
+    const pupilShiftX = this.faceDirX * r * 0.07;
+    const pupilShiftY = this.faceDirY * r * 0.07;
     ctx.shadowBlur  = 0;
     ctx.fillStyle   = '#0d47a1';
     const pupilR = r * 0.11;
     ctx.beginPath();
-    ctx.arc(cx - eyeDX + r * 0.03, eyeY + r * 0.05, pupilR, 0, Math.PI * 2);
+    ctx.arc(cx - eyeDX + eyeShiftX + pupilShiftX, eyeY + pupilShiftY, pupilR, 0, Math.PI * 2);
     ctx.fill();
     ctx.beginPath();
-    ctx.arc(cx + eyeDX + r * 0.03, eyeY + r * 0.05, pupilR, 0, Math.PI * 2);
+    ctx.arc(cx + eyeDX + eyeShiftX + pupilShiftX, eyeY + pupilShiftY, pupilR, 0, Math.PI * 2);
     ctx.fill();
 
     // 눈 하이라이트
     ctx.fillStyle = 'rgba(255,255,255,0.85)';
     ctx.beginPath();
-    ctx.arc(cx - eyeDX - r * 0.06, eyeY - r * 0.09, r * 0.06, 0, Math.PI * 2);
+    ctx.arc(cx - eyeDX + eyeShiftX - r * 0.06, eyeY - r * 0.09, r * 0.06, 0, Math.PI * 2);
     ctx.fill();
     ctx.beginPath();
-    ctx.arc(cx + eyeDX - r * 0.06, eyeY - r * 0.09, r * 0.06, 0, Math.PI * 2);
+    ctx.arc(cx + eyeDX + eyeShiftX - r * 0.06, eyeY - r * 0.09, r * 0.06, 0, Math.PI * 2);
     ctx.fill();
 
     ctx.restore();
 
-    // ── 대시 충전 링 (3분할 원호)
+    // ── 대시 충전 링 (dashStacksMax 분할 원호)
     {
-      const MAX_D   = 3;
+      const MAX_D   = this.dashStacksMax;
       const ringR   = radius + 14;
       const gapRad  = (8 * Math.PI) / 180;
       const arcSpan = (2 * Math.PI / MAX_D) - gapRad;
