@@ -111,6 +111,7 @@ export class Game {
     this._skillSpeedActive   = false;
     this._skillSpeedCooldown = 0;
     this.player.speedMult    = 1.0;
+    this._nextDashMilestoneIdx = 0;
 
     // UI 초기화 — 모든 스크린 숨김, HUD 표시
     document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
@@ -150,8 +151,8 @@ export class Game {
       }
     }
 
-    // 2. 스킬: 슬로우 모드 (W hold)
-    const wHeld = this.input.isSlowModeHeld();
+    // 2. 스킬: 슬로우 모드 (W hold) — 스피드 부스트 활성 중이면 사용 불가
+    const wHeld = this.input.isSlowModeHeld() && !this._skillSpeedActive;
     if (this._skillSlowCooldown > 0) {
       this._skillSlowCooldown -= dt;
       if (this._skillSlowCooldown < 0) this._skillSlowCooldown = 0;
@@ -165,8 +166,8 @@ export class Game {
       this._skillSlowActive = false;
     }
 
-    // 3. 스킬: 스피드 부스트 (Q hold)
-    const qHeld = this.input.isSpeedBoostHeld();
+    // 3. 스킬: 스피드 부스트 (Q hold) — 슬로우 스킬 활성 중이면 사용 불가 (아이템 슬로우는 허용)
+    const qHeld = this.input.isSpeedBoostHeld() && !this._skillSlowActive;
     if (this._skillSpeedCooldown > 0) {
       this._skillSpeedCooldown -= dt;
       if (this._skillSpeedCooldown < 0) this._skillSpeedCooldown = 0;
@@ -243,6 +244,17 @@ export class Game {
     // 11. 점수 업데이트
     this.scores.update(dt);
 
+    // 11-1. 대시 스택 마일스톤 (2000, 4000, 6000, 8000, 10000)
+    const DASH_MILESTONES = [2000, 4000, 6000, 8000, 10000];
+    while (
+      this._nextDashMilestoneIdx < DASH_MILESTONES.length &&
+      this.scores.score >= DASH_MILESTONES[this._nextDashMilestoneIdx]
+    ) {
+      this.player.dashStacksMax++;
+      this.player.dashStacks = Math.min(this.player.dashStacks + 1, this.player.dashStacksMax);
+      this._nextDashMilestoneIdx++;
+    }
+
     // 12. 카메라 추적
     this.camera.follow(this.player.x, this.player.y);
 
@@ -256,6 +268,7 @@ export class Game {
       this.player.maxLife,
       this.levels.getExpProgress(),
       this.player.dashStacks,
+      this.player.dashStacksMax,
       this.player.shield,
       // 스킬 상태
       this._skillSlowActive,
