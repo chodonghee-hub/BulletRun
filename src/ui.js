@@ -27,7 +27,7 @@ export class UIManager {
     this._levelupTimer = 0; // 하위 호환 유지용 (미사용)
   }
 
-  update(_dt, score, wave, level, life, maxLife, expProgress, dashStacks, shield,
+  update(_dt, score, wave, level, life, maxLife, expProgress, dashStacks, dashStacksMax, shield,
          slowActive, slowCooldown, speedActive, speedCooldown) {
     void life; void maxLife; void shield; // 캔버스에서 처리
 
@@ -46,12 +46,11 @@ export class UIManager {
 
     // ── 대시 스택 상태 (스킬 슬롯)
     if (this._skillDashEl) {
-      const MAX_DASH = 3;
-      if (dashStacks >= MAX_DASH) {
-        this._skillDashEl.textContent = `${MAX_DASH}/${MAX_DASH}`;
+      if (dashStacks >= dashStacksMax) {
+        this._skillDashEl.textContent = `${dashStacksMax}/${dashStacksMax}`;
         this._skillDashEl.className   = 'skill-status ready';
       } else {
-        this._skillDashEl.textContent = `${dashStacks}/${MAX_DASH}`;
+        this._skillDashEl.textContent = `${dashStacks}/${dashStacksMax}`;
         this._skillDashEl.className   = 'skill-status cooldown';
       }
     }
