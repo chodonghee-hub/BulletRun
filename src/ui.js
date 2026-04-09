@@ -1,6 +1,7 @@
 // src/ui.js — HUD 업데이트 (DOM 조작)
 
 import { SCORE, SKILLS } from './constants.js';
+const SLOW_MAX = SKILLS.SLOW_MODE.MAX_STACK;
 
 export class UIManager {
   constructor() {
@@ -28,7 +29,7 @@ export class UIManager {
   }
 
   update(_dt, score, wave, level, life, maxLife, expProgress, dashStacks, dashStacksMax, shield,
-         slowActive, slowCooldown, speedActive, speedCooldown) {
+         slowActive, slowStack, speedActive, speedCooldown) {
     void life; void maxLife; void shield; // 캔버스에서 처리
 
     // 점수 / 웨이브 / 레벨
@@ -55,11 +56,8 @@ export class UIManager {
       }
     }
 
-    // ── 스킬 슬로우 (W)
-    this._updateSkillSlot(
-      this._skillSlowEl, this._skillSlowBar, this._skillSlowSlot,
-      slowActive, slowCooldown, SKILLS.SLOW_MODE.COOLDOWN
-    );
+    // ── 스킬 슬로우 (W) — 스택 방식
+    this._updateSlowSlot(slowActive, slowStack);
 
     // ── 스킬 스피드 (Q)
     this._updateSkillSlot(
@@ -68,6 +66,27 @@ export class UIManager {
     );
 
     // 레벨업은 캔버스(player.js)에서 처리
+  }
+
+  _updateSlowSlot(active, stack) {
+    const el   = this._skillSlowEl;
+    const bar  = this._skillSlowBar;
+    const slot = this._skillSlowSlot;
+    if (!el) return;
+    if (active) {
+      el.textContent = `${stack.toFixed(1)}s`;
+      el.className   = 'skill-status active';
+      slot?.classList.add('skill-on');
+    } else if (stack < SLOW_MAX) {
+      el.textContent = `${stack.toFixed(1)}s`;
+      el.className   = 'skill-status cooldown';
+      slot?.classList.remove('skill-on');
+    } else {
+      el.textContent = 'READY';
+      el.className   = 'skill-status ready';
+      slot?.classList.remove('skill-on');
+    }
+    if (bar) bar.style.width = `${(stack / SLOW_MAX * 100).toFixed(1)}%`;
   }
 
   _updateSkillSlot(statusEl, barEl, slotEl, active, cooldown, maxCooldown) {

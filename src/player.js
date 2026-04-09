@@ -56,6 +56,16 @@ export class Player {
     this._levelUpTimer     = 0;
     this._levelUpDuration  = 2.0;
     this._levelUpBonusText = '';
+
+    // ─ 피버타임
+    this.feverActive = false;
+    this._feverFlame = 0;
+  }
+
+  // 피버타임 ON/OFF
+  setFever(v) {
+    this.feverActive = v;
+    if (!v) this._feverFlame = 0;
   }
 
   // 레벨업 메세지 표시 (캔버스에서 렌더)
@@ -77,7 +87,7 @@ export class Player {
 
   // 피격 처리 — true: 실제 데미지, false: 무적/쉴드로 흡수
   takeDamage() {
-    if (this.invincible || this.isDashing) return false;
+    if (this.invincible || this.isDashing || this.feverActive) return false;
     if (this.shield > 0) {
       this.shield--;
       this._startInvincible();
@@ -133,6 +143,9 @@ export class Player {
   update(dt, input) {
     // 레벨업 타이머
     if (this._levelUpTimer > 0) this._levelUpTimer -= dt;
+
+    // 피버 불꽃 타이머
+    if (this.feverActive) this._feverFlame += dt;
 
     // 무적 타이머
     if (this.invincible) {
@@ -228,6 +241,47 @@ export class Player {
 
     const { x, y, radius } = this;
     ctx.save();
+
+    // ── 피버 불꽃 이펙트
+    if (this.feverActive) {
+      const t = this._feverFlame;
+
+      // 내부 오렌지 글로우 (radialGradient)
+      const grd = ctx.createRadialGradient(x, y, radius * 0.5, x, y, radius * 2.4);
+      grd.addColorStop(0, `rgba(255,160,0,${0.28 + Math.sin(t * 5) * 0.07})`);
+      grd.addColorStop(1, 'rgba(255,60,0,0)');
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(x, y, radius * 2.4, 0, Math.PI * 2);
+      ctx.fillStyle = grd;
+      ctx.fill();
+      ctx.restore();
+
+      // 외부 파티클 8개 (그라디언트 글로우)
+      const FLAMES = 8;
+      for (let i = 0; i < FLAMES; i++) {
+        const angle  = (i / FLAMES) * Math.PI * 2 + t * 2.8;
+        const wobble = Math.sin(t * 7 + i * 1.5);
+        const dist   = radius * 1.55 + wobble * radius * 0.35;
+        const fx     = x + Math.cos(angle) * dist;
+        const fy     = y + Math.sin(angle) * dist;
+        const sz     = radius * 0.55 + Math.abs(wobble) * radius * 0.18;
+
+        const fg = ctx.createRadialGradient(fx, fy, 0, fx, fy, sz);
+        fg.addColorStop(0,   'rgba(255,230,60,0.95)');
+        fg.addColorStop(0.4, `rgba(255,${80 + i * 10},0,0.75)`);
+        fg.addColorStop(1,   'rgba(255,30,0,0)');
+
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(fx, fy, sz, 0, Math.PI * 2);
+        ctx.fillStyle   = fg;
+        ctx.shadowColor = '#ff5500';
+        ctx.shadowBlur  = 10;
+        ctx.fill();
+        ctx.restore();
+      }
+    }
 
     // ── 쉴드 링
     if (this.shield > 0) {

@@ -113,6 +113,22 @@ export class ItemManager {
     this.items.push(new GameItem(x, y, randomItem(pool)));
   }
 
+  // 피버타임 자석 — 범위 내 아이템을 플레이어 방향으로 이동
+  magnetToward(cx, cy, radius, speed, dt) {
+    const r2 = radius * radius;
+    for (const item of this.items) {
+      if (!item.alive) continue;
+      const dx = cx - item.x, dy = cy - item.y;
+      const dist2 = dx * dx + dy * dy;
+      if (dist2 < r2 && dist2 > 1) {
+        const dist = Math.sqrt(dist2);
+        const move = Math.min(speed * dt, dist);
+        item.x += (dx / dist) * move;
+        item.y += (dy / dist) * move;
+      }
+    }
+  }
+
   // 플레이어와 겹치는 아이템 회수 → 회수된 아이템 배열 반환
   checkPickup(playerX, playerY, pickupRadius) {
     const picked = [];

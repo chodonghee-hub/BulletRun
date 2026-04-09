@@ -103,13 +103,29 @@ export const MAX_ITEMS_ON_MAP = 20;
 // ─── Player Skills ────────────────────────────────────────────
 export const SKILLS = {
   SLOW_MODE: {
-    DURATION:     5,    // 활성 지속 시간 (초)
-    COOLDOWN:     2,   // 재사용 대기 시간 (초)
-    BULLET_SLOW:  0.35, // 탄막 속도 배율
+    MAX_STACK:  5,    // 최대 슬로우 스택 (초)
+    REGEN_RATE: 1,    // 초당 충전량 (1초/초)
+    BULLET_SLOW: 0.35, // 탄막 속도 배율
   },
   SPEED_BOOST: {
-    DURATION:    3,     // 활성 지속 시간 (초)
-    COOLDOWN:    2,     // 재사용 대기 시간 (초)
-    SPEED_MULT:  1.7,   // 이동 속도 배율
+    COOLDOWN:   2,    // 재사용 대기 시간 (초)
+    SPEED_MULT: 1.7,  // 이동 속도 배율
   },
+};
+
+// ─── Fever Time ───────────────────────────────────────────────
+export const FEVER = {
+  STAR_COUNT:    10,  // 피버 발동에 필요한 별 수
+  DURATION:       5,  // 피버 지속 시간 (초)
+  MAGNET_RADIUS: 250, // 아이템 흡인 범위
+  MAGNET_SPEED:  400, // 흡인 속도 (px/s)
+  CLEAR_RADIUS:  200, // 탄막 제거 범위
+};
+
+// ─── Bomb Necklace ────────────────────────────────────────────
+export const BOMB_NECKLACE = {
+  DURATION:  60,  // 제한 시간 (초)
+  COOLDOWN:  20,  // 해제 후 재발동 대기 시간 (초)
+  KEY_MIN:    5,  // 최소 열쇠 수
+  KEY_MAX:    8,  // 최대 열쇠 수
 };
