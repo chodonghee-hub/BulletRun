@@ -1,0 +1,29 @@
+# API Keys & secrets
+config/config.js
+.env
+.env.*
+!.env.example
+
+# Dependencies
+node_modules/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/settings.json
+*.suo
+*.user
+
+# Logs
+*.log
+
+# MAKRDOWNS
+GAME_PRD.md
+
+# trouble shooting
+trouble_shooting/
+
+# package
+package-lock.json
