@@ -27,3 +27,6 @@ trouble_shooting/
 
 # package
 package-lock.json
+
+# ignore
+.claudeignore
