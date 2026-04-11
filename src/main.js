@@ -14,7 +14,7 @@ async function main() {
     rankEl.innerHTML =
       '<div style="margin-bottom:6px;letter-spacing:.08em;color:#64b5f6">TOP SCORES</div>' +
       topScores
-        .map((s, i) => `<div>${i + 1}. ${s.player_name}  ${s.score}pt  LV${s.level}</div>`)
+        .map((s, i) => `<div>${i + 1}. ${s.badges || ''} ${s.player_name}  ${s.score}pt  LV${s.level}</div>`)
         .join('');
   }
 

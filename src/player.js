@@ -103,7 +103,7 @@ export class Player {
   }
 
   addShield() {
-    this.shield = Math.min(3, this.shield + 1);
+    this.shield = Math.min(2, this.shield + 1);
   }
 
   _startInvincible() {
@@ -283,16 +283,6 @@ export class Player {
       }
     }
 
-    // ── 쉴드 링
-    if (this.shield > 0) {
-      ctx.beginPath();
-      ctx.arc(x, y, radius + 9, 0, Math.PI * 2);
-      ctx.strokeStyle = '#ce93d8';
-      ctx.lineWidth   = 3;
-      ctx.shadowColor = '#ce93d8';
-      ctx.shadowBlur  = 12;
-      ctx.stroke();
-    }
 
     // ── 대시 잔상 트레일
     if (this.isDashing) {
@@ -385,7 +375,7 @@ export class Player {
     // ── 대시 충전 링 (dashStacksMax 분할 원호)
     {
       const MAX_D   = this.dashStacksMax;
-      const ringR   = radius + 14;
+      const ringR   = radius + 8;
       const gapRad  = (8 * Math.PI) / 180;
       const arcSpan = (2 * Math.PI / MAX_D) - gapRad;
       ctx.save();
@@ -438,8 +428,12 @@ export class Player {
     ctx.shadowColor  = 'rgba(0,0,0,0.9)';
     ctx.shadowBlur   = 5;
     ctx.fillStyle    = '#fff';
-    ctx.fillText(`❤️×${this.life}`, x, y - radius - 8);
+    const headText = this.shield > 0
+      ? `❤️×${this.life}  🛡️×${this.shield}`
+      : `❤️×${this.life}`;
+    ctx.fillText(headText, x, y - radius - 8);
     ctx.restore();
+
 
     // ── 레벨업 메세지 (캐릭터 위, 페이드 아웃)
     if (this._levelUpTimer > 0) {
