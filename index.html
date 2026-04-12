@@ -10,35 +10,18 @@
 <body>
   <div id="game-container">
 
-    <!-- Main game canvas -->
-    <canvas id="game-canvas"></canvas>
-
-    <!-- HUD overlay (shown during play) -->
-    <div id="hud-overlay" style="display:none">
-
-      <!-- Minimap: top-left -->
+    <!-- Left panel: UI separated from game canvas -->
+    <div id="left-panel" style="display:none">
+      <!-- Minimap -->
       <div id="minimap-container">
         <div id="minimap-label">MAP</div>
         <canvas id="minimap-canvas"></canvas>
       </div>
 
-      <!-- Score progress bar: very top of screen -->
-      <div id="hud-score-progress-bar">
-        <div id="hud-score-progress-fill"></div>
-        <span id="hud-score-progress-text">0 / 1000</span>
-      </div>
-
-      <!-- Mission panel: right side -->
+      <!-- Mission panel -->
       <div id="mission-panel"></div>
 
-      <!-- Top-right info -->
-      <div id="hud-info">
-        <div id="hud-score">SCORE <span id="hud-score-value">0</span></div>
-        <div id="hud-wave">WAVE <span id="hud-wave-value">1</span></div>
-        <div id="hud-level">LV <span id="hud-level-value">1</span></div>
-      </div>
-
-      <!-- 스킬 표시 (좌측 하단) -->
+      <!-- 스킬 표시 -->
       <div id="hud-skills">
         <div class="skill-slot" id="skill-slot-speed">
           <span class="skill-key">Q</span>
@@ -57,6 +40,26 @@
           <span class="skill-name">💨 DASH</span>
           <span id="skill-dash-status" class="skill-status ready">3/3</span>
         </div>
+      </div>
+    </div><!-- /left-panel -->
+
+    <!-- Main game canvas -->
+    <canvas id="game-canvas"></canvas>
+
+    <!-- HUD overlay (shown during play, covers canvas area only) -->
+    <div id="hud-overlay" style="display:none">
+
+      <!-- Score progress bar: very top of canvas area -->
+      <div id="hud-score-progress-bar">
+        <div id="hud-score-progress-fill"></div>
+        <span id="hud-score-progress-text">0 / 1000</span>
+      </div>
+
+      <!-- Top-right info -->
+      <div id="hud-info">
+        <div id="hud-score">SCORE <span id="hud-score-value">0</span></div>
+        <div id="hud-wave">WAVE <span id="hud-wave-value">1</span></div>
+        <div id="hud-level">LV <span id="hud-level-value">1</span></div>
       </div>
 
       <!-- Bottom center: exp bar -->
@@ -78,8 +81,8 @@
       <div id="screen-start-controls">
         <span>이동: 방향키</span>
         <span>대시: E (3스택, 탄막 파괴)</span>
-        <span>슬로우 모드: W (누르는 동안 지속, 쿨타임 12초)</span>
-        <span>가속 모드: Q (누르는 동안 지속, 쿨타임 8초)</span>
+        <span>슬로우 모드: W (누르는 동안 지속, 쿨타임 2초)</span>
+        <span>가속 모드: Q (누르는 동안 지속, 쿨타임 2초)</span>
       </div>
       <button id="btn-start" class="btn-primary">게임 시작</button>
       <div id="screen-start-ranking"></div>
@@ -89,6 +92,9 @@
     <div id="screen-gameover" class="screen hidden">
       <h2 class="screen-title-red">GAME OVER</h2>
       <p class="screen-score">SCORE: <span id="gameover-score">0</span></p>
+      <div id="gameover-badges" class="end-badges"></div>
+      <p id="gameover-rank" class="end-rank"></p>
+      <div id="gameover-nearby" class="end-ranking"></div>
       <input id="gameover-name" class="name-input" type="text" maxlength="12" placeholder="닉네임 입력" />
       <button id="btn-save-gameover" class="btn-primary">저장하기</button>
       <button id="btn-restart" class="btn-primary btn-secondary">다시 시작</button>
@@ -98,6 +104,9 @@
     <div id="screen-clear" class="screen hidden">
       <h2 class="screen-title-green">GAME CLEAR!</h2>
       <p class="screen-score">SCORE: <span id="clear-score">0</span></p>
+      <div id="clear-badges" class="end-badges"></div>
+      <p id="clear-rank" class="end-rank"></p>
+      <div id="clear-nearby" class="end-ranking"></div>
       <input id="clear-name" class="name-input" type="text" maxlength="12" placeholder="닉네임 입력" />
       <button id="btn-save-clear" class="btn-primary">저장하기</button>
       <button id="btn-clear-restart" class="btn-primary btn-secondary">다시 시작</button>
