@@ -13,6 +13,7 @@ import { UIManager }            from './ui.js';
 import { InputManager }         from './input.js';
 import { saveScore }            from './supabase-client.js';
 import { BombNecklaceManager }  from './bomb-necklace.js';
+import { MissionSystem }        from './mission.js';
 import { SKILLS, FEVER }        from './constants.js';
 
 export class Game {
@@ -36,18 +37,25 @@ export class Game {
     this.ui      = new UIManager();
     this.input   = new InputManager();
     this.bomb    = new BombNecklaceManager();
+    this.mission = new MissionSystem(this.player, this.scores, this.levels);
 
     // 레벨업 콜백 등록
     this.levels.onLevelUp((level, bonus) => {
       this.player.applyLevelBonus(bonus);
       this.player.showLevelUp(bonus);
       this.bomb.onLevelReached(level);
+      this.mission.notify('level', level);
     });
 
     // ─ 상태
     this.state        = 'start';
     this._rafId       = null;
     this._lastTime    = 0;
+
+    // ─ 미션 보조 상태
+    this._missionHintTimer     = 0;
+    this._prevSkillSlowActive  = false;
+    this._currentZoneId        = null;
 
     // 아이템으로 인한 슬로우
     this._itemSlowActive = false;
@@ -86,20 +94,22 @@ export class Game {
 
     // 점수 저장 버튼 (게임오버)
     document.getElementById('btn-save-gameover').addEventListener('click', async () => {
-      const name = document.getElementById('gameover-name').value.trim() || 'PLAYER';
-      const btn  = document.getElementById('btn-save-gameover');
+      const name   = document.getElementById('gameover-name').value.trim() || 'PLAYER';
+      const badges = this.mission.getEarnedBadges().join('');
+      const btn    = document.getElementById('btn-save-gameover');
       btn.disabled    = true;
       btn.textContent = '저장 완료 ✓';
-      await saveScore(name, this.scores.score, this.waves.wave, this.levels.level);
+      await saveScore(name, this.scores.score, this.waves.wave, this.levels.level, badges);
     });
 
     // 점수 저장 버튼 (게임 클리어)
     document.getElementById('btn-save-clear').addEventListener('click', async () => {
-      const name = document.getElementById('clear-name').value.trim() || 'PLAYER';
-      const btn  = document.getElementById('btn-save-clear');
+      const name   = document.getElementById('clear-name').value.trim() || 'PLAYER';
+      const badges = this.mission.getEarnedBadges().join('');
+      const btn    = document.getElementById('btn-save-clear');
       btn.disabled    = true;
       btn.textContent = '저장 완료 ✓';
-      await saveScore(name, this.scores.score, this.waves.wave, this.levels.level);
+      await saveScore(name, this.scores.score, this.waves.wave, this.levels.level, badges);
     });
   }
 
@@ -123,6 +133,10 @@ export class Game {
     this._feverActive        = false;
     this._feverTimer         = 0;
     this.bomb.reset();
+    this.mission.reset();
+    this._missionHintTimer    = 0;
+    this._prevSkillSlowActive = false;
+    this._currentZoneId       = null;
 
     // UI 초기화 — 모든 스크린 숨김, HUD 표시
     document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
@@ -157,8 +171,10 @@ export class Game {
       const { dx, dy } = this.input.getMovementDir();
       const dashed = this.player.tryDash(dx, dy);
       if (dashed) {
-        const seg = this.player.getDashSegment();
-        this.bullets.handleDash(seg.x1, seg.y1, seg.x2, seg.y2, this.player.radius + 6);
+        const seg   = this.player.getDashSegment();
+        const count = this.bullets.handleDash(seg.x1, seg.y1, seg.x2, seg.y2, this.player.radius + 6);
+        this.mission.notify('use_dash');
+        if (count > 0) this.mission.notify('dash_destroy_bullet', count);
       }
     }
 
@@ -177,6 +193,12 @@ export class Game {
         );
       }
     }
+
+    // 슬로우 스킬 최초 활성화 감지 (false → true 전환 시 1회 카운트)
+    if (!this._prevSkillSlowActive && this._skillSlowActive) {
+      this.mission.notify('use_slow');
+    }
+    this._prevSkillSlowActive = this._skillSlowActive;
 
     // 3. 스킬: 스피드 부스트 (Q hold) — 슬로우 스킬 활성 중이면 사용 불가 (아이템 슬로우는 허용)
     const qHeld = this.input.isSpeedBoostHeld() && !this._skillSlowActive;
@@ -197,11 +219,20 @@ export class Game {
     }
     this.player.speedBoostActive = this._skillSpeedActive;
 
+    // 스킬: 속도 부스트 사용 시간 누적
+    if (this._skillSpeedActive) {
+      this.mission.notify('speed_boost_time', dt);
+    }
+
+    // 피격 없이 생존 시간 누적 (S1, S2 미션)
+    this.mission.notify('nohit_time', dt);
+
     // 4. 플레이어 이동
     this.player.update(dt, this.input);
 
     // 5. 웨이브 진행
-    this.waves.update(dt);
+    const waveChanged = this.waves.update(dt);
+    if (waveChanged) this.mission.notify('wave', this.waves.wave);
 
     // 6. 아이템 슬로우 타이머
     if (this._itemSlowActive) {
@@ -229,18 +260,31 @@ export class Game {
         this.levels.addExp(item.config.exp);
 
         if (item.type === 'health') this.player.heal(1);
-        if (item.type === 'shield') this.player.addShield();
+        if (item.type === 'shield') {
+          this.player.addShield();
+          this.mission.notify('collect_shield');
+        }
         if (item.type === 'slow') {
           this._itemSlowActive = true;
           this._itemSlowTimer  = item.config.slowDuration;
         }
         if (item.type === 'exp') {
           this._starCount++;
+          this.mission.notify('collect_star');
+          this.mission.notify('star_nohit_streak');
+          const prevFever = this._feverActive;
           if (this._starCount % FEVER.STAR_COUNT === 0) {
             this._feverActive = true;
             this._feverTimer  = FEVER.DURATION;
             this.player.setFever(true);
           }
+          if (!prevFever && this._feverActive) {
+            this.mission.notify('fever');
+          }
+        }
+        // 이벤트 구역 아이템 수집 (Z2)
+        if (zone?.id === 4) {
+          this.mission.notify('collect_event_zone');
         }
       }
     }
@@ -261,7 +305,26 @@ export class Game {
     // 9-2. 폭탄 목걸이 업데이트
     const bombResult = this.bomb.update(dt);
     if (bombResult === 'explode') { this._bombExplode(); return; }
-    this.bomb.checkKeyPickup(this.player.x, this.player.y, this.player.radius);
+    const bombPickup = this.bomb.checkKeyPickup(this.player.x, this.player.y, this.player.radius);
+    if (bombPickup === 'cleared') {
+      this.mission.notify('bomb_complete');
+    }
+
+    // 9-3. 구역 방문 추적 + 고위험 구역 체류 (미션 Z1, Z3)
+    {
+      const curZone = this.map.getZoneAt(this.player.x, this.player.y);
+      if (curZone) {
+        // 구역 변경 시 방문 기록
+        if (curZone.id !== this._currentZoneId) {
+          this._currentZoneId = curZone.id;
+          if (curZone.id !== 0) this.mission.notify('visit_zone', curZone.id);
+        }
+        // 고위험 구역 체류 (rewardMult >= 2.0 = high-risk)
+        if (curZone.rewardMult >= 2.0) {
+          this.mission.notify('zone_highrise', dt);
+        }
+      }
+    }
 
     // 10. 탄막 충돌 판정 (히트박스 기준)
     // 피버 중: 접촉 탄막 파괴 (데미지 없음, break 없이 전부 처리)
@@ -277,7 +340,10 @@ export class Game {
             b.alive = false;
           } else if (!this.player.invincible && !this.player.isDashing) {
             const damaged = this.player.takeDamage();
-            if (damaged) this.scores.onHit();
+            if (damaged) {
+              this.scores.onHit();
+              this.mission.notify('hit');
+            }
             b.alive = false;
             break;
           }
@@ -287,6 +353,7 @@ export class Game {
 
     // 11. 점수 업데이트
     this.scores.update(dt);
+    this.mission.notify('score', this.scores.score);
 
     // 11-1. 대시 스택 마일스톤 (2000, 4000, 6000, 8000, 10000)
     const DASH_MILESTONES = [2000, 4000, 6000, 8000, 10000];
@@ -298,6 +365,13 @@ export class Game {
       this.player.dashStacks = Math.min(this.player.dashStacks + 1, this.player.dashStacksMax);
       this._nextDashMilestoneIdx++;
     }
+
+    // 11-2. 미션 💡 힌트 타이머 + 캐릭터 위 수집 표시 주입
+    if (this.mission.consumeNewMissionFlag()) {
+      this._missionHintTimer = 1.0;
+    }
+    if (this._missionHintTimer > 0) this._missionHintTimer -= dt;
+    this.player._missionDisplayItems = this.mission.getDisplayItems();
 
     // 12. 카메라 추적
     this.camera.follow(this.player.x, this.player.y);
@@ -320,6 +394,9 @@ export class Game {
       this._skillSpeedActive,
       Math.max(0, this._skillSpeedCooldown)
     );
+
+    // 13-1. 미션 패널 UI 업데이트
+    this.ui.renderMissions(this.mission.active, this.mission._progress);
 
     // 14. 미니맵 렌더링
     this.minimap.render(this.player, this.items.items);
@@ -410,6 +487,25 @@ export class Game {
 
     // 폭탄 목걸이 HUD (스크린 공간)
     this.bomb.renderHUD(ctx, this.canvas.width, this.canvas.height, this.player, this.camera);
+
+    // 💡 새 미션 알림 이모지 (스크린 공간)
+    if (this._missionHintTimer > 0) {
+      const elapsed = 1.0 - this._missionHintTimer;
+      let alpha;
+      if (elapsed < 0.3)      alpha = elapsed / 0.3;
+      else if (elapsed < 0.7) alpha = 1.0;
+      else                    alpha = 1.0 - (elapsed - 0.7) / 0.3;
+
+      const sx = this.player.x - this.camera.x;
+      const sy = this.player.y - this.camera.y;
+      ctx.save();
+      ctx.globalAlpha  = Math.max(0, alpha);
+      ctx.font         = '28px sans-serif';
+      ctx.textAlign    = 'center';
+      ctx.textBaseline = 'bottom';
+      ctx.fillText('💡', sx, sy - this.player.radius - 60);
+      ctx.restore();
+    }
   }
 
   // ─── 게임 종료 처리 ─────────────────────────────────────────
