@@ -11,10 +11,30 @@ import { ScoreManager }         from './score.js';
 import { Minimap }              from './minimap.js';
 import { UIManager }            from './ui.js';
 import { InputManager }         from './input.js';
-import { saveScore }            from './supabase-client.js';
+import { saveScore, getRankingContext } from './supabase-client.js';
 import { BombNecklaceManager }  from './bomb-necklace.js';
 import { MissionSystem }        from './mission.js';
 import { SKILLS, FEVER }        from './constants.js';
+
+const PANEL_W = 260;
+
+function renderRankRow(entry, currentPlayerScore = null) {
+  const isCurrent = currentPlayerScore !== null && entry.score === currentPlayerScore;
+  const rankClass = entry.rank === 1 ? 'rank-gold'
+                  : entry.rank === 2 ? 'rank-silver'
+                  : entry.rank === 3 ? 'rank-bronze' : '';
+  return `
+    <div class="rank-row ${rankClass} ${isCurrent ? 'rank-highlight' : ''}">
+      <div class="rank-line1">
+        <span class="rank-num">#${entry.rank}</span>
+        <span class="rank-name">${entry.player_name}</span>
+        <span class="rank-score">${entry.score}pt</span>
+      </div>
+      <div class="rank-line2">
+        <span class="rank-badges">${entry.badges}</span>
+      </div>
+    </div>`;
+}
 
 export class Game {
   constructor(canvas, minimapCanvas) {
@@ -79,7 +99,7 @@ export class Game {
   }
 
   _resize() {
-    this.canvas.width  = window.innerWidth;
+    this.canvas.width  = window.innerWidth - PANEL_W;
     this.canvas.height = window.innerHeight;
     if (this.camera) {
       this.camera.viewW = this.canvas.width;
@@ -138,9 +158,10 @@ export class Game {
     this._prevSkillSlowActive = false;
     this._currentZoneId       = null;
 
-    // UI 초기화 — 모든 스크린 숨김, HUD 표시
+    // UI 초기화 — 모든 스크린 숨김, HUD + 왼쪽 패널 표시
     document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
     document.getElementById('hud-overlay').style.display = '';
+    document.getElementById('left-panel').style.display = '';
 
     this.state     = 'playing';
     this._lastTime = performance.now();
@@ -512,12 +533,12 @@ export class Game {
   _gameOver() {
     this.state = 'gameover';
     document.getElementById('gameover-score').textContent = this.scores.score;
-    // 저장 버튼 초기화
     const btn = document.getElementById('btn-save-gameover');
     btn.disabled    = false;
     btn.textContent = '저장하기';
     document.getElementById('gameover-name').value = '';
     document.getElementById('screen-gameover').classList.remove('hidden');
+    this._showEndScreen('gameover', this.scores.score);
   }
 
   _bombExplode() {
@@ -528,16 +549,33 @@ export class Game {
     btn.textContent = '저장하기';
     document.getElementById('gameover-name').value = '';
     document.getElementById('screen-gameover').classList.remove('hidden');
+    this._showEndScreen('gameover', this.scores.score);
   }
 
   _gameClear() {
     this.state = 'clear';
     document.getElementById('clear-score').textContent = this.scores.score;
-    // 저장 버튼 초기화
     const btn = document.getElementById('btn-save-clear');
     btn.disabled    = false;
     btn.textContent = '저장하기';
     document.getElementById('clear-name').value = '';
     document.getElementById('screen-clear').classList.remove('hidden');
+    this._showEndScreen('clear', this.scores.score);
+  }
+
+  async _showEndScreen(prefix, score) {
+    const badges = this.mission.getEarnedBadges();
+    const badgeEl  = document.getElementById(`${prefix}-badges`);
+    const rankEl   = document.getElementById(`${prefix}-rank`);
+    const nearbyEl = document.getElementById(`${prefix}-nearby`);
+
+    if (badgeEl)  badgeEl.textContent = badges.length > 0 ? badges.join('') : '—';
+    if (rankEl)   rankEl.textContent  = '랭킹 조회 중…';
+    if (nearbyEl) nearbyEl.innerHTML  = '';
+
+    const { rank, nearby } = await getRankingContext(score);
+    if (rankEl)   rankEl.textContent = rank ? `예상 순위: #${rank}` : '';
+    if (nearbyEl && nearby.length > 0)
+      nearbyEl.innerHTML = nearby.map(e => renderRankRow(e, score)).join('');
   }
 }

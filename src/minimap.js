@@ -2,7 +2,7 @@
 
 import { MAP_WIDTH, MAP_HEIGHT, ZONES, ZONE_STYLE, ITEM } from './constants.js';
 
-const MM_W = 300;
+const MM_W = 240;
 const MM_H = Math.round(MM_W * (MAP_HEIGHT / MAP_WIDTH)); // 비율 유지 ≈ 128px
 const SCALE_X = MM_W / MAP_WIDTH;
 const SCALE_Y = MM_H / MAP_HEIGHT;
