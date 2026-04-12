@@ -32,5 +32,8 @@ package-lock.json
 .claudeignore
 .claude/
 
-# plans 
+# plans
 todo_plan/
+
+# build output
+dist/

@@ -12,10 +12,19 @@ async function main() {
   if (topScores.length > 0) {
     const rankEl = document.getElementById('screen-start-ranking');
     rankEl.innerHTML =
-      '<div style="margin-bottom:6px;letter-spacing:.08em;color:#64b5f6">TOP SCORES</div>' +
-      topScores
-        .map((s, i) => `<div>${i + 1}. ${s.badges || ''} ${s.player_name}  ${s.score}pt  LV${s.level}</div>`)
-        .join('');
+      '<div style="margin-bottom:8px;letter-spacing:.08em;color:#64b5f6;font-size:14px">TOP SCORES</div>' +
+      topScores.map((s, i) => {
+        const rank = i + 1;
+        const rankClass = rank === 1 ? 'rank-gold' : rank === 2 ? 'rank-silver' : rank === 3 ? 'rank-bronze' : '';
+        return `<div class="rank-row ${rankClass}">
+          <div class="rank-line1">
+            <span class="rank-num">#${rank}</span>
+            <span class="rank-name">${s.player_name}</span>
+            <span class="rank-score">${s.score}pt</span>
+          </div>
+          <div class="rank-line2"><span class="rank-badges">${s.badges || ''}</span></div>
+        </div>`;
+      }).join('');
   }
 
   // 게임 인스턴스 생성

@@ -31,6 +31,34 @@ export async function saveScore(playerName, score, wave, level, badges = '') {
   }
 }
 
+// 랭킹 컨텍스트 조회 — 예상 순위 + 앞뒤 플레이어
+export async function getRankingContext(playerScore, windowSize = 2) {
+  if (!supabase) return { rank: null, nearby: [] };
+  try {
+    const { data, error } = await supabase
+      .from('bullet_run_scores')
+      .select('player_name, score, wave, level, badges')
+      .order('score', { ascending: false })
+      .limit(100);
+    if (error || !data) return { rank: null, nearby: [] };
+
+    const rank = data.filter(s => s.score > playerScore).length + 1;
+    const idx = rank - 1;
+    const startIdx = Math.max(0, idx - windowSize);
+    const endIdx   = Math.min(data.length - 1, idx + windowSize);
+    const nearby = data.slice(startIdx, endIdx + 1).map((s, i) => ({
+      rank:        startIdx + i + 1,
+      player_name: s.player_name,
+      score:       s.score,
+      badges:      s.badges || '',
+    }));
+    return { rank, nearby };
+  } catch (e) {
+    console.error('[Supabase] 랭킹 조회 실패:', e);
+    return { rank: null, nearby: [] };
+  }
+}
+
 // 상위 N개 점수 조회
 export async function getTopScores(limit = 10) {
   if (!supabase) return [];
