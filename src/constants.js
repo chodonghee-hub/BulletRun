@@ -92,13 +92,13 @@ export const ITEM_TYPES = ['health', 'exp', 'slow', 'shield'];
 
 // Item drop rate (spawns per second) per zone type
 export const ITEM_DROP_RATE = {
-  'safe':      0.04,
-  'normal':    0.07,
-  'high-risk': 0.13,
-  'event':     0.10,
+  'safe':      0.06,
+  'normal':    0.09,
+  'high-risk': 0.15,
+  'event':     0.12,
 };
 
-export const MAX_ITEMS_ON_MAP = 20;
+export const MAX_ITEMS_ON_MAP = 35;
 
 // ─── Player Skills ────────────────────────────────────────────
 export const SKILLS = {
@@ -128,4 +128,24 @@ export const BOMB_NECKLACE = {
   COOLDOWN:  20,  // 해제 후 재발동 대기 시간 (초)
   KEY_MIN:    5,  // 최소 열쇠 수
   KEY_MAX:    8,  // 최대 열쇠 수
+};
+
+// ─── Villain ──────────────────────────────────────────────────
+export const VILLAIN = {
+  RADIUS:              44,   // 시작 시각적 반경 (기존 22의 2배)
+  HITBOX_RADIUS:       36,   // 시작 충돌 판정 반경 (기존 18의 2배)
+  BASE_SPEED:          110,  // px/s (기본 추적 속도)
+  SPEED_PER_WAVE:      5,    // 웨이브당 속도 증가 (px/s)
+  MAX_HP:              5,    // 처치에 필요한 대시 횟수
+  RESPAWN_COOLDOWN:    30,   // 처치 후 재등장 대기 시간 (초)
+  REWARD_SCORE:        500,  // 처치 시 획득 점수
+  REWARD_EXP:          100,  // 처치 시 획득 EXP
+  LEVEL_TRIGGER:       5,    // 등장 레벨
+  SPAWN_MIN_DIST:      400,  // 스폰 시 플레이어와의 최소 거리
+  SPAWN_MAX_DIST:      600,  // 스폰 시 플레이어와의 최대 거리
+  GROWTH_INTERVAL:     5,    // 크기 성장 주기 (초)
+  GROWTH_AMOUNT:       6,    // 성장량 (px per tick)
+  MAX_RADIUS:          88,   // 최대 시각적 반경
+  ABSORB_PULL_RADIUS:  120,  // 아이템 인력 시작 범위 (피버 250px 보다 작게)
+  ABSORB_SPEED:        180,  // 아이템 흡수 이동 속도 (px/s)
 };

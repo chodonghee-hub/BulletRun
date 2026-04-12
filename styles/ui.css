@@ -254,19 +254,68 @@
 }
 .screen.hidden { display: none; }
 
+/* ─── Start Screen: background image + vignette ─────────── */
+#screen-start {
+  background:
+    linear-gradient(
+      to bottom,
+      rgba(0,0,0,0.50) 0%,
+      rgba(0,0,0,0.65) 55%,
+      rgba(0,0,0,0.88) 100%
+    ),
+    url('../assets/images/landing-bg.jpg') center/cover no-repeat;
+  gap: 20px;
+}
+
+#screen-start::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at center, transparent 35%, rgba(0,0,0,0.55) 100%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+#screen-start > * {
+  position: relative;
+  z-index: 1;
+}
+
 /* Title */
 .title-glow {
-  font-size: 72px;
+  font-size: 80px;
   font-weight: bold;
-  letter-spacing: 0.12em;
-  color: #64b5f6;
-  text-shadow: 0 0 20px #64b5f6, 0 0 50px #1565c0, 0 0 80px #1565c020;
+  letter-spacing: 0.18em;
+  color: #fff;
+  text-shadow:
+    0 0 10px #64b5f6,
+    0 0 30px #64b5f6,
+    0 0 60px #1565c0,
+    0 0 100px #0d47a1;
+  animation: title-pulse 3s ease-in-out infinite;
+}
+
+@keyframes title-pulse {
+  0%, 100% {
+    text-shadow:
+      0 0 10px #64b5f6,
+      0 0 30px #64b5f6,
+      0 0 60px #1565c0;
+  }
+  50% {
+    text-shadow:
+      0 0 20px #90caf9,
+      0 0 50px #42a5f5,
+      0 0 90px #1e88e5,
+      0 0 140px #0d47a1;
+  }
 }
 
 .subtitle {
-  font-size: 16px;
-  color: rgba(255,255,255,0.55);
-  letter-spacing: 0.08em;
+  font-size: 15px;
+  color: rgba(255,255,255,0.72);
+  letter-spacing: 0.12em;
+  text-shadow: 0 0 12px rgba(0,0,0,0.9);
 }
 
 /* Start screen controls hint */
@@ -274,12 +323,16 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
   font-size: 13px;
-  color: rgba(255,255,255,0.4);
-  border: 1px solid rgba(255,255,255,0.1);
-  padding: 10px 20px;
-  border-radius: 4px;
+  color: rgba(255,255,255,0.52);
+  letter-spacing: 0.05em;
+  background: rgba(0,0,0,0.55);
+  border: 1px solid rgba(100,181,246,0.22);
+  border-left: 3px solid rgba(100,181,246,0.7);
+  padding: 12px 24px;
+  border-radius: 6px;
+  backdrop-filter: blur(4px);
 }
 
 /* Screen titles */
@@ -295,23 +348,26 @@
 
 /* Button */
 .btn-primary {
-  padding: 12px 36px;
-  font-size: 17px;
+  padding: 13px 44px;
+  font-size: 18px;
   font-family: 'Courier New', monospace;
   font-weight: bold;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.12em;
   background: transparent;
   color: #fff;
-  border: 2px solid rgba(255,255,255,0.7);
+  border: 2px solid rgba(100,181,246,0.8);
   border-radius: 4px;
   cursor: pointer;
-  transition: background 0.18s, color 0.18s, border-color 0.18s;
+  transition: all 0.2s ease;
   pointer-events: all;
+  text-shadow: 0 0 8px rgba(255,255,255,0.4);
+  box-shadow: 0 0 12px rgba(100,181,246,0.2), inset 0 0 12px rgba(100,181,246,0.05);
 }
 .btn-primary:hover {
-  background: #fff;
-  color: #000;
-  border-color: #fff;
+  background: rgba(100,181,246,0.15);
+  border-color: #90caf9;
+  box-shadow: 0 0 24px rgba(100,181,246,0.5), inset 0 0 16px rgba(100,181,246,0.1);
+  color: #e3f2fd;
 }
 
 /* Level-up overlay: non-blocking, 배경 없음 */
@@ -362,7 +418,26 @@
   max-height: 360px;
   overflow-y: auto;
   width: 100%;
-  max-width: 320px;
+  max-width: 340px;
+  background: rgba(0,0,0,0.50);
+  border: 1px solid rgba(255,255,255,0.10);
+  border-radius: 8px;
+  padding: 10px 14px;
+  backdrop-filter: blur(4px);
+}
+
+/* Ranking section label */
+.ranking-label {
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  color: rgba(100,181,246,0.7);
+  text-align: center;
+  width: 100%;
+  max-width: 340px;
+  text-transform: uppercase;
+  padding-bottom: 2px;
+  border-bottom: 1px solid rgba(100,181,246,0.18);
+  margin-bottom: -8px;
 }
 
 /* ─── End Screen Ranking ────────────────────────────────── */
