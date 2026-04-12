@@ -92,13 +92,13 @@ export const ITEM_TYPES = ['health', 'exp', 'slow', 'shield'];
 
 // Item drop rate (spawns per second) per zone type
 export const ITEM_DROP_RATE = {
-  'safe':      0.04,
-  'normal':    0.07,
-  'high-risk': 0.13,
-  'event':     0.10,
+  'safe':      0.06,
+  'normal':    0.09,
+  'high-risk': 0.15,
+  'event':     0.12,
 };
 
-export const MAX_ITEMS_ON_MAP = 20;
+export const MAX_ITEMS_ON_MAP = 35;
 
 // ─── Player Skills ────────────────────────────────────────────
 export const SKILLS = {
@@ -140,7 +140,7 @@ export const VILLAIN = {
   RESPAWN_COOLDOWN:    30,   // 처치 후 재등장 대기 시간 (초)
   REWARD_SCORE:        500,  // 처치 시 획득 점수
   REWARD_EXP:          100,  // 처치 시 획득 EXP
-  LEVEL_TRIGGER:       7,    // 등장 레벨
+  LEVEL_TRIGGER:       5,    // 등장 레벨
   SPAWN_MIN_DIST:      400,  // 스폰 시 플레이어와의 최소 거리
   SPAWN_MAX_DIST:      600,  // 스폰 시 플레이어와의 최대 거리
   GROWTH_INTERVAL:     5,    // 크기 성장 주기 (초)
