@@ -110,6 +110,29 @@ export class UIManager {
     }
   }
 
+  renderMissions(activeMissions, progress) {
+    const panel = document.getElementById('mission-panel');
+    if (!panel) return;
+
+    panel.innerHTML = activeMissions.map(m => {
+      const raw = progress[m.id] ?? 0;
+      const cur = Math.min(raw, m.target);
+      const pct = ((cur / m.target) * 100).toFixed(0);
+      // 소수점 표시: time 계열은 정수로, 나머지도 정수
+      const displayCur = Math.floor(cur);
+      return `
+        <div class="mission-card">
+          <span class="mission-badge">${m.badge}</span>
+          <span class="mission-count">${displayCur}/${m.target}</span>
+          <span class="mission-desc">${m.desc}</span>
+          <div class="mission-bar-wrap">
+            <div class="mission-bar-fill" style="width:${pct}%"></div>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
   showLevelUp(level, bonus) {
     void level;
     const parts = [];

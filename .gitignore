@@ -28,5 +28,9 @@ trouble_shooting/
 # package
 package-lock.json
 
-# ignore
+# claude
 .claudeignore
+.claude/
+
+# plans 
+todo_plan/

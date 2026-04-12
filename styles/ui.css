@@ -172,7 +172,7 @@
   left: 14px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 9px;
 }
 
 .skill-slot {
@@ -180,15 +180,15 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
-  font-size: 14px;
+  gap: 15px;
+  font-size: 21px;
   background: rgba(0,0,0,0.6);
   border: 1px solid rgba(255,255,255,0.15);
-  border-radius: 6px;
-  padding: 6px 12px;
+  border-radius: 9px;
+  padding: 9px 18px;
   overflow: hidden;
   transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
-  min-width: 200px;
+  min-width: 300px;
 }
 
 /* ON 상태 강조 */
@@ -200,24 +200,24 @@
 
 .skill-key {
   color: rgba(255,255,255,0.55);
-  font-size: 16px;
+  font-size: 24px;
   font-weight: bold;
   letter-spacing: 0.05em;
-  min-width: 18px;
+  min-width: 27px;
   text-align: center;
 }
 
 .skill-name {
   color: rgba(255,255,255,0.80);
-  font-size: 18px;
-  min-width: 82px;
+  font-size: 27px;
+  min-width: 123px;
 }
 
 .skill-status {
-  font-size: 13px;
+  font-size: 20px;
   font-weight: bold;
   letter-spacing: 0.05em;
-  min-width: 52px;
+  min-width: 78px;
   text-align: right;
 }
 .skill-status.ready    { color: #69f0ae; }
@@ -228,10 +228,10 @@
 .skill-cooldown-bar {
   position: absolute;
   bottom: 0; left: 0;
-  height: 3px;
+  height: 5px;
   background: rgba(100,181,246,0.75);
   transition: width 0.12s linear;
-  border-radius: 0 0 6px 6px;
+  border-radius: 0 0 9px 9px;
 }
 
 @keyframes skill-pulse {
@@ -357,4 +357,46 @@
   text-align: center;
   line-height: 1.7;
   min-height: 20px;
+}
+
+/* ─── Mission Panel (right side) ───────────────────────── */
+#mission-panel {
+  position: absolute;
+  top: 120px;
+  right: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  pointer-events: none;
+}
+
+.mission-card {
+  background: rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(100, 181, 246, 0.35);
+  border-radius: 9px;
+  padding: 8px 15px;
+  color: #e0f7fa;
+  font-family: 'Courier New', monospace;
+  font-size: 18px;
+  min-width: 300px;
+  max-width: 360px;
+}
+
+.mission-badge { margin-right: 6px; }
+.mission-count { float: right; color: #b0bec5; font-size: 16px; }
+.mission-desc  { display: block; margin-bottom: 5px; }
+
+.mission-bar-wrap {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+  height: 6px;
+  margin-top: 5px;
+  clear: both;
+}
+
+.mission-bar-fill {
+  background: #64b5f6;
+  border-radius: 3px;
+  height: 6px;
+  transition: width 0.2s ease;
 }

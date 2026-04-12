@@ -17,12 +17,12 @@ export async function initSupabase() {
 }
 
 // 점수 저장 (bullet_run_scores 테이블 필요)
-export async function saveScore(playerName, score, wave, level) {
+export async function saveScore(playerName, score, wave, level, badges = '') {
   if (!supabase) return null;
   try {
     const { data, error } = await supabase
       .from('bullet_run_scores')
-      .insert([{ player_name: playerName, score, wave, level, created_at: new Date().toISOString() }]);
+      .insert([{ player_name: playerName, score, wave, level, badges, created_at: new Date().toISOString() }]);
     if (error) console.error('[Supabase] 저장 오류:', error.message);
     return data;
   } catch (e) {
@@ -37,7 +37,7 @@ export async function getTopScores(limit = 10) {
   try {
     const { data, error } = await supabase
       .from('bullet_run_scores')
-      .select('player_name, score, wave, level')
+      .select('player_name, score, wave, level, badges')
       .order('score', { ascending: false })
       .limit(limit);
     if (error) console.error('[Supabase] 조회 오류:', error.message);
