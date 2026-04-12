@@ -1,6 +1,6 @@
 // src/map.js — 맵 렌더링 및 구역(Zone) 관리
 
-import { MAP_WIDTH, MAP_HEIGHT, ZONES, ZONE_STYLE } from './constants.js';
+import { MAP_WIDTH, MAP_HEIGHT, ZONES, ZONE_STYLE } from '../core/constants.js';
 
 export class GameMap {
   constructor() {

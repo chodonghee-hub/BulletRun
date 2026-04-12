@@ -1,7 +1,7 @@
 // src/bullet.js — 탄막 개별 클래스 + BulletManager (맵 전체 스폰)
 
-import { BULLET, MAX_BULLETS, WAVE, ZONES, MAP_WIDTH, MAP_HEIGHT } from './constants.js';
-import { randomBetween, randomInt, pointNearSegment } from './utils.js';
+import { BULLET, MAX_BULLETS, WAVE, ZONES, MAP_WIDTH, MAP_HEIGHT } from '../core/constants.js';
+import { randomBetween, randomInt, pointNearSegment } from '../core/utils.js';
 
 // ─── 단일 탄막 ────────────────────────────────────────────────
 class Bullet {

@@ -1,7 +1,7 @@
 // src/player.js — 플레이어 이동/대시/피격/렌더링
 
-import { PLAYER, MAP_WIDTH, MAP_HEIGHT } from './constants.js';
-import { clamp, normalize } from './utils.js';
+import { PLAYER, MAP_WIDTH, MAP_HEIGHT } from '../core/constants.js';
+import { clamp, normalize } from '../core/utils.js';
 
 export class Player {
   constructor() {
