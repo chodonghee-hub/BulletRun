@@ -1,7 +1,7 @@
 // src/main.js — 진입점
 
 import { Game }          from './game.js';
-import { initSupabase, getTopScores } from './supabase-client.js';
+import { initSupabase, getTopScores } from './services/supabase-client.js';
 
 async function main() {
   // Supabase 초기화 (config.js 없으면 조용히 건너뜀)

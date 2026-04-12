@@ -1,6 +1,6 @@
 // src/level.js — 레벨/경험치 시스템
 
-import { LEVEL } from './constants.js';
+import { LEVEL } from '../core/constants.js';
 
 export class LevelManager {
   constructor() {

@@ -1,7 +1,7 @@
 // src/item.js — 아이템 개별 클래스 + ItemManager (랜덤 드롭)
 
-import { ITEM, ITEM_TYPES, ITEM_DROP_RATE, MAX_ITEMS_ON_MAP, ZONES } from './constants.js';
-import { randomBetween, randomItem, circleCircle } from './utils.js';
+import { ITEM, ITEM_TYPES, ITEM_DROP_RATE, MAX_ITEMS_ON_MAP, ZONES } from '../core/constants.js';
+import { randomBetween, randomItem, circleCircle } from '../core/utils.js';
 
 // ─── 단일 아이템 ──────────────────────────────────────────────
 class GameItem {

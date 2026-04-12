@@ -1,8 +1,8 @@
 // src/villain.js — 빌런 몬스터 시스템 (레벨 7 등장, 대시로 처치 가능)
 // 캔버스로 클래식 카툰 고스트 직접 드로잉, 좌우 방향 전환
 
-import { VILLAIN, MAP_WIDTH, MAP_HEIGHT } from './constants.js';
-import { clamp } from './utils.js';
+import { VILLAIN, MAP_WIDTH, MAP_HEIGHT } from '../core/constants.js';
+import { clamp } from '../core/utils.js';
 
 export class VillainManager {
   constructor() {
