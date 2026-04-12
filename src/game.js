@@ -14,7 +14,8 @@ import { InputManager }         from './input.js';
 import { saveScore, getRankingContext } from './supabase-client.js';
 import { BombNecklaceManager }  from './bomb-necklace.js';
 import { MissionSystem }        from './mission.js';
-import { SKILLS, FEVER }        from './constants.js';
+import { VillainManager }       from './villain.js';
+import { SKILLS, FEVER, VILLAIN } from './constants.js';
 
 const PANEL_W = 260;
 
@@ -57,6 +58,7 @@ export class Game {
     this.ui      = new UIManager();
     this.input   = new InputManager();
     this.bomb    = new BombNecklaceManager();
+    this.villain = new VillainManager();
     this.mission = new MissionSystem(this.player, this.scores, this.levels);
 
     // 레벨업 콜백 등록
@@ -64,6 +66,7 @@ export class Game {
       this.player.applyLevelBonus(bonus);
       this.player.showLevelUp(bonus);
       this.bomb.onLevelReached(level);
+      this.villain.onLevelReached(level);
       this.mission.notify('level', level);
     });
 
@@ -153,6 +156,7 @@ export class Game {
     this._feverActive        = false;
     this._feverTimer         = 0;
     this.bomb.reset();
+    this.villain.reset();
     this.mission.reset();
     this._missionHintTimer    = 0;
     this._prevSkillSlowActive = false;
@@ -196,6 +200,12 @@ export class Game {
         const count = this.bullets.handleDash(seg.x1, seg.y1, seg.x2, seg.y2, this.player.radius + 6);
         this.mission.notify('use_dash');
         if (count > 0) this.mission.notify('dash_destroy_bullet', count);
+        // 빌런 대시 피격 판정
+        const villainResult = this.villain.checkDashHit(seg.x1, seg.y1, seg.x2, seg.y2, this.player.radius + 6);
+        if (villainResult === 'dead') {
+          this.scores.score += VILLAIN.REWARD_SCORE;
+          this.levels.addExp(VILLAIN.REWARD_EXP);
+        }
       }
     }
 
@@ -331,7 +341,15 @@ export class Game {
       this.mission.notify('bomb_complete');
     }
 
-    // 9-3. 구역 방문 추적 + 고위험 구역 체류 (미션 Z1, Z3)
+    // 9-3. 빌런 업데이트 및 접촉 판정
+    this.villain.update(dt, this.waves.wave, this.player.x, this.player.y);
+    this.villain.absorbItems(this.items.items, dt);
+    if (this.villain.checkPlayerContact(this.player.x, this.player.y, this.player.hitboxRadius)) {
+      const damaged = this.player.takeDamage();
+      if (damaged) this.scores.onHit();
+    }
+
+    // 9-4. 구역 방문 추적 + 고위험 구역 체류 (미션 Z1, Z3)
     {
       const curZone = this.map.getZoneAt(this.player.x, this.player.y);
       if (curZone) {
@@ -486,6 +504,9 @@ export class Game {
     // 폭탄 목걸이 열쇠 (월드 공간)
     this.bomb.renderWorld(ctx);
 
+    // 빌런 (월드 공간)
+    this.villain.renderWorld(ctx);
+
     this.camera.restore(ctx);
 
     // ── 스크린 공간 오버레이 ──────────────────────────────
@@ -508,6 +529,9 @@ export class Game {
 
     // 폭탄 목걸이 HUD (스크린 공간)
     this.bomb.renderHUD(ctx, this.canvas.width, this.canvas.height, this.player, this.camera);
+
+    // 빌런 HUD (스크린 공간)
+    this.villain.renderHUD(ctx, this.canvas.width, this.canvas.height, this.player, this.camera);
 
     // 💡 새 미션 알림 이모지 (스크린 공간)
     if (this._missionHintTimer > 0) {
