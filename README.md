@@ -21,7 +21,7 @@
 
 > _웹 브라우저에서 즐기는 탄막 회피 게임. 대형 맵을 탐험하며 아이템을 수집하고, 레벨업하며 10만점 달성을 목표로 한다._
 <div align=center>
-    <img alt="게임 메인 화면" src="assets/images/screenshot_main.png" />
+    <img alt="게임 메인 화면" src="assets/images/screenshot_main.png" width="50%" />
 </div>
 
 
@@ -34,7 +34,7 @@
 > 플레이어 캐릭터는 이동하는 방향으로 눈이 이동한다. 플레이어의 라이프는 ❤️xN 으로 표시된다.
 
 <div align='center'>
-    <img alt="게임플레이" src="assets/images/screenshot_gameplay.png" />
+    <img alt="게임플레이" src="assets/images/screenshot_gameplay.png"/>
 </div>
 <br>
 
@@ -44,7 +44,7 @@
 
 <!-- 스크린샷 추가 예정 -->
 <div align='center'>
-    <img alt="게임플레이" src="assets/images/screenshot_dash.png" />
+    <img alt="게임플레이" src="assets/images/screenshot_dash.png" width="50%" />
 </div>
 <br>
 
@@ -83,8 +83,8 @@
 
 <!-- 스크린샷 추가 예정 -->
 <div align='center'>
-    <img alt="미션 & 뱃지" src="assets/images/screenshot_mission.png" />
-    <img alt="미션 & 뱃지" src="assets/images/screenshot_badges.png" />
+    <img alt="미션 & 뱃지" src="assets/images/screenshot_mission.png" width="50%" /><br><br>
+    <img alt="미션 & 뱃지" src="assets/images/screenshot_badges.png" width="50%" />
 </div>
 <br>
 
@@ -94,7 +94,7 @@
 
 <!-- 스크린샷 추가 예정 -->
 <div align='center'>
-    <img alt="리더보드" src="assets/images/screenshot_leaderboard.png" />
+    <img alt="리더보드" src="assets/images/screenshot_leaderboard.png" width="50%" />
 </div>
 <br>
 
