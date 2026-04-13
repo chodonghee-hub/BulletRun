@@ -1,6 +1,6 @@
 // src/bomb-necklace.js — 폭탄 목걸이 시스템 (레벨 10 이후 반복)
 
-import { BOMB_NECKLACE, MAP_WIDTH, MAP_HEIGHT } from './constants.js';
+import { BOMB_NECKLACE, MAP_WIDTH, MAP_HEIGHT } from '../core/constants.js';
 
 export class BombNecklaceManager {
   constructor() {

@@ -1,0 +1,21 @@
+/* ─── Minimap (in left panel) ───────────────────────────── */
+#minimap-container {
+  background: rgba(0, 0, 0, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 4px;
+  overflow: hidden;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+#minimap-label {
+  font-size: 9px;
+  letter-spacing: 0.15em;
+  color: rgba(255,255,255,0.45);
+  text-align: center;
+  padding: 2px 0 1px;
+}
+
+#minimap-canvas {
+  display: block;
+}

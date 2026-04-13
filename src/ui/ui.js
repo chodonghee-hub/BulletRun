@@ -1,6 +1,6 @@
 // src/ui.js — HUD 업데이트 (DOM 조작)
 
-import { SCORE, SKILLS } from './constants.js';
+import { SCORE, SKILLS } from '../core/constants.js';
 const SLOW_MAX = SKILLS.SLOW_MODE.MAX_STACK;
 
 export class UIManager {

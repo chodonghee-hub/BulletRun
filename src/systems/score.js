@@ -1,6 +1,6 @@
 // src/score.js — 점수 시스템
 
-import { SCORE } from './constants.js';
+import { SCORE } from '../core/constants.js';
 
 export class ScoreManager {
   constructor() {

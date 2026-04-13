@@ -1,6 +1,6 @@
 // src/wave.js — 웨이브(난이도) 관리
 
-import { WAVE } from './constants.js';
+import { WAVE } from '../core/constants.js';
 
 export class WaveManager {
   constructor() {

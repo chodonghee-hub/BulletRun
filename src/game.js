@@ -1,21 +1,21 @@
 // src/game.js — 메인 게임 클래스 (게임 루프 / 시스템 통합)
 
-import { Camera }               from './camera.js';
-import { GameMap }              from './map.js';
-import { Player }               from './player.js';
-import { BulletManager }        from './bullet.js';
-import { ItemManager }          from './item.js';
-import { WaveManager }          from './wave.js';
-import { LevelManager }         from './level.js';
-import { ScoreManager }         from './score.js';
-import { Minimap }              from './minimap.js';
-import { UIManager }            from './ui.js';
-import { InputManager }         from './input.js';
-import { saveScore, getRankingContext } from './supabase-client.js';
-import { BombNecklaceManager }  from './bomb-necklace.js';
-import { MissionSystem }        from './mission.js';
-import { VillainManager }       from './villain.js';
-import { SKILLS, FEVER, VILLAIN } from './constants.js';
+import { Camera }               from './systems/camera.js';
+import { GameMap }              from './systems/map.js';
+import { Player }               from './entities/player.js';
+import { BulletManager }        from './entities/bullet.js';
+import { ItemManager }          from './entities/item.js';
+import { WaveManager }          from './systems/wave.js';
+import { LevelManager }         from './systems/level.js';
+import { ScoreManager }         from './systems/score.js';
+import { Minimap }              from './systems/minimap.js';
+import { UIManager }            from './ui/ui.js';
+import { InputManager }         from './systems/input.js';
+import { saveScore, getRankingContext } from './services/supabase-client.js';
+import { BombNecklaceManager }  from './systems/bomb-necklace.js';
+import { MissionSystem }        from './systems/mission.js';
+import { VillainManager }       from './entities/villain.js';
+import { SKILLS, FEVER, VILLAIN } from './core/constants.js';
 
 const PANEL_W = 260;
 

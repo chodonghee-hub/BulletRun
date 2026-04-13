@@ -1,7 +1,7 @@
 // src/camera.js — 플레이어 추적 카메라
 
-import { MAP_WIDTH, MAP_HEIGHT } from './constants.js';
-import { clamp } from './utils.js';
+import { MAP_WIDTH, MAP_HEIGHT } from '../core/constants.js';
+import { clamp } from '../core/utils.js';
 
 export class Camera {
   constructor(viewW, viewH) {
