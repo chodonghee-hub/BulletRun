@@ -8,7 +8,7 @@ async function main() {
   await initSupabase();
 
   // 시작 화면 랭킹 표시 (Supabase 연결 시)
-  const topScores = await getTopScores(5);
+  const topScores = await getTopScores(3);
   if (topScores.length > 0) {
     const rankEl = document.getElementById('screen-start-ranking');
     rankEl.innerHTML =
